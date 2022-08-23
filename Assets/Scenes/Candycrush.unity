@@ -152,9 +152,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7001c04e88b24ec4c8edaf4f995d660c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  height: 9
-  width: 16
+  height: 16
+  width: 9
+  edge: 1
   prefab: {fileID: 6254257494482593451, guid: b57509b222072fb42817690a51f50931, type: 3}
+  gamePiece:
+  - {fileID: 3651786692935923647, guid: 69bb4ea4852b0584996da77ba51b5c38, type: 3}
+  - {fileID: 6493561484270762363, guid: ef56238b177b6fd4e813f640fa064e4a, type: 3}
+  - {fileID: 8691968386563084848, guid: e2d6cf5e9e939f0408a4854ebd237a70, type: 3}
+  - {fileID: 6855477259241313008, guid: 05ed375217b443748b871a4870ff9481, type: 3}
+  - {fileID: 405035413715367087, guid: c64a08f5852797d4caaa8b2b421b6bdf, type: 3}
+  - {fileID: 6462487717917528513, guid: 55f022074edb79d4880c7e7ab1b95f0c, type: 3}
+  - {fileID: 107032062365250084, guid: 716e44420bc5647459e99ff44d064028, type: 3}
+  - {fileID: 5043320383831295720, guid: db4def0a13ada724a922ce2adb8097d7, type: 3}
+  - {fileID: 4476414383711813172, guid: 98aeb349647619c4aa9449d2f085bfa4, type: 3}
+  - {fileID: 5464045974171190715, guid: 49618ea92c8ecd041abb45317e4c98b5, type: 3}
+  buffer: {fileID: 0}
   mainCamenra: {fileID: 1215747798}
 --- !u!4 &69152969
 Transform:
@@ -300,8 +313,8 @@ Camera:
   m_GameObject: {fileID: 1215747798}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.3301887, g: 0.3301887, b: 0.3301887, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
