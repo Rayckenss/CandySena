@@ -152,8 +152,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7001c04e88b24ec4c8edaf4f995d660c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  height: 16
-  width: 9
+  height: 1
+  width: 1
   edge: 1
   prefab: {fileID: 6254257494482593451, guid: b57509b222072fb42817690a51f50931, type: 3}
   gamePiece:

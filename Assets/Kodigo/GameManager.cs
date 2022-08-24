@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour
         {
             mainCamenra.GetComponent<Camera>().orthographicSize = ((((float)Screen.height*(float)width)/(float)Screen.width) / 2)+((float)edge*2);
         }
+        PositionOnMatriz();
     }
     void Update()
     {
@@ -69,7 +70,18 @@ public class GameManager : MonoBehaviour
                 GameObject go = Instantiate(gamePiece[Random.Range(0,10)], new Vector3(j, i, 0), Quaternion.identity, transform);
                 myPiece[i, j] = go.GetComponent<GamePiece>();
                 myPiece[i, j].SetPosition(i, j);
-                go.name = "Tile (" + i + "," + j + ")";
+                go.name = "Circle (" + i + "," + j + ")";
+            }
+        }
+    }
+    public void Actualizar()
+    {
+        myPiece = new GamePiece[height, width];
+        for (int j = 0; j < width; j++)
+        {
+            for (int i = 0; i < height; i++)
+            {
+                myPiece[i, j].SetPosition(i, j);
             }
         }
     }
