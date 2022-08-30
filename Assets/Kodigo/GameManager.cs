@@ -10,8 +10,8 @@ public class GameManager : MonoBehaviour
     public GamePiece[,] myPiece;
     public GameObject prefab;
     public GameObject[] gamePiece;
-    public GameObject buffer;
     public GameObject mainCamenra;
+    public Tile selectTile, targetTile;
 
     private void Awake()
     {
@@ -56,9 +56,15 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-    public void RandomGamePiece ()
+    public GameObject RandomGamePiece ()
     {
-        buffer = gamePiece[Random.Range(0,11)];
+        GameObject buffer = gamePiece[Random.Range(0,gamePiece.Length)];
+        return buffer;
+    }
+    public void InitializePosition (int X, int Y, GamePiece piece)
+    {
+        piece.transform.position = new Vector3(X, Y, 0);
+        piece.SetPosition(X, Y);
     }
     public void PositionOnMatriz()
     {
@@ -67,22 +73,49 @@ public class GameManager : MonoBehaviour
         {
             for (int i = 0; i < height; i++)
             {
-                GameObject go = Instantiate(gamePiece[Random.Range(0,10)], new Vector3(j, i, 0), Quaternion.identity, transform);
+                GameObject go = Instantiate(RandomGamePiece(), new Vector3(j, i, 0), Quaternion.identity, transform);
                 myPiece[i, j] = go.GetComponent<GamePiece>();
-                myPiece[i, j].SetPosition(i, j);
+                InitializePosition(i, j, go.GetComponent<GamePiece>());
                 go.name = "Circle (" + i + "," + j + ")";
             }
         }
     }
-    public void Actualizar()
+    public void SelectTile(Tile tile)
     {
-        myPiece = new GamePiece[height, width];
-        for (int j = 0; j < width; j++)
+        if (selectTile==null)
         {
-            for (int i = 0; i < height; i++)
-            {
-                myPiece[i, j].SetPosition(i, j);
-            }
+            selectTile = tile;
         }
+    }
+    public void TargetTile(Tile tile)
+    {
+        if (selectTile!=null)
+        {
+            targetTile = tile;
+        }
+    }
+    public void Released()
+    {
+        selectTile = null;
+        targetTile = null;
+    }
+
+    //Metodo para cambiar
+    public void Change()
+    {
+
+    }
+
+    bool IsNeighbour(Tile selected, Tile target)
+    {
+        if (Mathf.Abs(selected.transform.position.x-target.transform.position.x)==1&&selected.transform.position.y==target.transform.position.y)
+        {
+            return true;
+        }
+        if (Mathf.Abs(selected.transform.position.y - target.transform.position.y) == 1 && selected.transform.position.x == target.transform.position.x)
+        {
+            return true;
+        }
+        return false;
     }
 }

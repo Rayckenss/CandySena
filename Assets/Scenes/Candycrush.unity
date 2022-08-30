@@ -152,8 +152,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7001c04e88b24ec4c8edaf4f995d660c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  height: 1
-  width: 1
+  height: 3
+  width: 2
   edge: 1
   prefab: {fileID: 6254257494482593451, guid: b57509b222072fb42817690a51f50931, type: 3}
   gamePiece:
@@ -169,6 +169,8 @@ MonoBehaviour:
   - {fileID: 5464045974171190715, guid: 49618ea92c8ecd041abb45317e4c98b5, type: 3}
   buffer: {fileID: 0}
   mainCamenra: {fileID: 1215747798}
+  selectTile: {fileID: 0}
+  targetTile: {fileID: 0}
 --- !u!4 &69152969
 Transform:
   m_ObjectHideFlags: 0
@@ -271,7 +273,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 353781024}
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
-  m_LocalPosition: {x: 0, y: 3, z: 0}
+  m_LocalPosition: {x: -9.14, y: 3, z: -5.28}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

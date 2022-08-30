@@ -11,4 +11,17 @@ public class Tile : MonoBehaviour
         indiceX = heigth;
         indiceY = width;
     }
+    private void OnMouseDown()
+    {
+        GameManager.Instance.SelectTile(this);
+        //Debug.Log("Selected");
+    }
+    private void OnMouseEnter()
+    {
+        GameManager.Instance.TargetTile(this);
+    }
+    private void OnMouseUp()
+    {
+        GameManager.Instance.Released();
+    }
 }
