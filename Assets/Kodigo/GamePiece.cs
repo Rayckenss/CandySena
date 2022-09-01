@@ -9,15 +9,21 @@ public class GamePiece : MonoBehaviour
     public float time;
     public bool ejecucion = true;
     public Types tipos;
+    public int colorCode;
     
     public void SetPosition(int X, int Y)
     {
         indiceX = X;
         indiceY = Y;
     }
-    IEnumerator MovePiece(Vector3 posicionDeseada, float tiempoDeAccion)
+    public void SetPrefab(int color)
+    {
+        colorCode=color;
+    }
+    IEnumerator MovePiece(int x, int y, float tiempoDeAccion)
     {
         ejecucion = false;
+        Vector3 posicionDeseada = new Vector3(x,y,0);
         Vector3 posicionInicial = transform.position;
         Debug.Log($"Start: {posicionInicial}, Desire: {posicionDeseada}");
         float tiempoTranscurrido = 0f;
@@ -50,9 +56,15 @@ public class GamePiece : MonoBehaviour
             tiempoTranscurrido += Time.deltaTime;
         }
         transform.position = posicionDeseada;
+        SetPosition(x, y);
+        GameManager.Instance.InitializePosition(x,y,this);
         Debug.Log("Fin de la Corutina");
-        SetPosition((int)posicionDeseada.x, (int)posicionDeseada.y);
+        GameManager.Instance.Match();
         ejecucion = true;
+    }
+    IEnumerator TypeOfColor(int x, int y)
+    {
+        return null;
     }
     private void Update()
     {
@@ -69,6 +81,10 @@ public class GamePiece : MonoBehaviour
         Cosenoidal,
         Suave,
         Muysuave
+    }
+    public void Corutina(int x, int y)
+    {
+        StartCoroutine(MovePiece(x, y, time));
     }
     
 }

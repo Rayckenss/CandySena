@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8307944066673102440}
   - component: {fileID: -5494054408077057095}
   m_Layer: 0
-  m_Name: Circle 1 1 4
+  m_Name: FF7360
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -101,4 +101,4 @@ MonoBehaviour:
   indiceY: 0
   time: 2
   ejecucion: 1
-  tipos: 0
+  tipos: 1

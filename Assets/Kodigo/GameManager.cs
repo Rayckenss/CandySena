@@ -23,15 +23,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         NewMap();
-        mainCamenra.transform.position = new Vector3(((float)width / 2)-0.5f, ((float)height / 2)-0.5f, mainCamenra.transform.position.z);
-        if (width<height)
-        {
-            mainCamenra.GetComponent<Camera>().orthographicSize = ((float)height/2)+((float)edge*2);
-        }
-        else
-        {
-            mainCamenra.GetComponent<Camera>().orthographicSize = ((((float)Screen.height*(float)width)/(float)Screen.width) / 2)+((float)edge*2);
-        }
+        CameraPosition();
         PositionOnMatriz();
     }
     void Update()
@@ -44,37 +36,51 @@ public class GameManager : MonoBehaviour
     }
     public void NewMap()
     {
-        myBoard = new Tile[height, width];
-        for (int j = 0; j < width; j++)
+        myBoard = new Tile[width, height];
+        for (int i = 0; i < width; i++)
         {
-            for (int i = 0; i < height; i++)
+            for (int j = 0; j < height; j++)
             {
-                GameObject go = Instantiate(prefab, new Vector3(j, i,0), Quaternion.identity,transform);
+                GameObject go = Instantiate(prefab, new Vector3(i, j,0), Quaternion.identity,transform);
                 myBoard[i, j] = go.GetComponent<Tile>();
                 myBoard[i, j].Indice(i, j);
                 go.name = "Tile (" + i + "," + j + ")";
             }
         }
     }
+    void CameraPosition()
+    {
+        mainCamenra.transform.position = new Vector3(((float)width / 2) - 0.5f, ((float)height / 2) - 0.5f, mainCamenra.transform.position.z);
+        if (width < height)
+        {
+            mainCamenra.GetComponent<Camera>().orthographicSize = ((float)height / 2) + ((float)edge * 2);
+        }
+        else
+        {
+            mainCamenra.GetComponent<Camera>().orthographicSize = ((((float)Screen.height * (float)width) / (float)Screen.width) / 2) + ((float)edge * 2);
+        }
+    }
     public GameObject RandomGamePiece ()
     {
-        GameObject buffer = gamePiece[Random.Range(0,gamePiece.Length)];
+        int numeroR = Random.Range(0, gamePiece.Length);
+        GameObject buffer = gamePiece[numeroR];
+        buffer.GetComponent<GamePiece>().SetPrefab(numeroR);
         return buffer;
     }
     public void InitializePosition (int X, int Y, GamePiece piece)
     {
         piece.transform.position = new Vector3(X, Y, 0);
         piece.SetPosition(X, Y);
+        myPiece[X, Y] = piece;
     }
     public void PositionOnMatriz()
     {
-        myPiece = new GamePiece[height, width];
-        for (int j = 0; j < width; j++)
+        myPiece = new GamePiece[width, height];
+        for (int i = 0; i < width; i++)
         {
-            for (int i = 0; i < height; i++)
+            for (int j = 0; j < height; j++)
             {
-                GameObject go = Instantiate(RandomGamePiece(), new Vector3(j, i, 0), Quaternion.identity, transform);
-                myPiece[i, j] = go.GetComponent<GamePiece>();
+                GameObject go = Instantiate(RandomGamePiece(), new Vector3(i,j, 0), Quaternion.identity, transform);
                 InitializePosition(i, j, go.GetComponent<GamePiece>());
                 go.name = "Circle (" + i + "," + j + ")";
             }
@@ -85,6 +91,7 @@ public class GameManager : MonoBehaviour
         if (selectTile==null)
         {
             selectTile = tile;
+            Debug.Log("Selecciona Tile");
         }
     }
     public void TargetTile(Tile tile)
@@ -92,20 +99,27 @@ public class GameManager : MonoBehaviour
         if (selectTile!=null)
         {
             targetTile = tile;
+            Debug.Log("Selecciona Objetivo");
         }
     }
     public void Released()
     {
-        selectTile = null;
-        targetTile = null;
-    }
+        if (selectTile != null && targetTile != null&&IsNeighbour(selectTile,targetTile))
+        {
+            SwitchPieces(selectTile, targetTile);
+        }
 
-    //Metodo para cambiar
+        if (selectTile != null || targetTile != null)
+        { 
+            selectTile = null;
+           targetTile = null;
+            Debug.Log("libera");
+        }
+    }
     public void Change()
     {
 
     }
-
     bool IsNeighbour(Tile selected, Tile target)
     {
         if (Mathf.Abs(selected.transform.position.x-target.transform.position.x)==1&&selected.transform.position.y==target.transform.position.y)
@@ -117,5 +131,33 @@ public class GameManager : MonoBehaviour
             return true;
         }
         return false;
+    }
+    public void SwitchPieces(Tile selected, Tile target)
+    {
+        GamePiece iniGp = myPiece[selected.indiceX, selected.indiceY];
+        GamePiece finGp = myPiece[target.indiceX, target.indiceY];
+        iniGp.Corutina(target.indiceX, target.indiceY);
+        finGp.Corutina(selected.indiceX, selected.indiceY);
+    }
+    public void Match()
+    {
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                if (i+1<width&&i-1>=0&& j+1 < height && j-1 >= 0)
+                {
+                    if (myPiece[i, j].colorCode == myPiece[i + 1, j].colorCode&& myPiece[i, j].colorCode == myPiece[i - 1, j].colorCode)
+                    {
+                        Debug.Log($"Match:{myPiece[i,j].transform.position}");
+                    }
+                    if (myPiece[i, j].colorCode == myPiece[i, j+1].colorCode && myPiece[i, j].colorCode == myPiece[i, j-1].colorCode)
+                    {
+                        Debug.Log($"Match:{myPiece[i, j].transform.position}");
+                    }
+                }
+                
+            }
+        }
     }
 }

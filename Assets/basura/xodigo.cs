@@ -8,7 +8,6 @@ public class xodigo : MonoBehaviour
     public GameObject[,] matriz;
     public int filas, columnas, parejas;
     public GameObject prefab;
-    string filastr;
 
     private void Awake()
     {
@@ -30,7 +29,7 @@ public class xodigo : MonoBehaviour
         {
             for (int j = 0; j < columnas; j++)
             {
-                filastr = null;
+                //filastr = null;
                 for (int i = 0; i < filas; i++)
                 {
                     GameObject go = Instantiate(prefab, new Vector3(j, 0, i), Quaternion.identity);

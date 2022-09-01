@@ -14,7 +14,6 @@ public class Tile : MonoBehaviour
     private void OnMouseDown()
     {
         GameManager.Instance.SelectTile(this);
-        //Debug.Log("Selected");
     }
     private void OnMouseEnter()
     {
