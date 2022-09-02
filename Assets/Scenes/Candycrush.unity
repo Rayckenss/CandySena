@@ -158,7 +158,7 @@ MonoBehaviour:
   prefab: {fileID: 6254257494482593451, guid: b57509b222072fb42817690a51f50931, type: 3}
   gamePiece:
   - {fileID: 3651786692935923647, guid: 69bb4ea4852b0584996da77ba51b5c38, type: 3}
-  - {fileID: 6493561484270762363, guid: ef56238b177b6fd4e813f640fa064e4a, type: 3}
+  - {fileID: 5464045974171190715, guid: 49618ea92c8ecd041abb45317e4c98b5, type: 3}
   - {fileID: 8691968386563084848, guid: e2d6cf5e9e939f0408a4854ebd237a70, type: 3}
   - {fileID: 6855477259241313008, guid: 05ed375217b443748b871a4870ff9481, type: 3}
   - {fileID: 405035413715367087, guid: c64a08f5852797d4caaa8b2b421b6bdf, type: 3}
@@ -166,7 +166,6 @@ MonoBehaviour:
   - {fileID: 107032062365250084, guid: 716e44420bc5647459e99ff44d064028, type: 3}
   - {fileID: 5043320383831295720, guid: db4def0a13ada724a922ce2adb8097d7, type: 3}
   - {fileID: 4476414383711813172, guid: 98aeb349647619c4aa9449d2f085bfa4, type: 3}
-  - {fileID: 5464045974171190715, guid: 49618ea92c8ecd041abb45317e4c98b5, type: 3}
   mainCamenra: {fileID: 1215747798}
   selectTile: {fileID: 0}
   targetTile: {fileID: 0}

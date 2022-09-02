@@ -71,7 +71,10 @@ public class GameManager : MonoBehaviour
     {
         piece.transform.position = new Vector3(X, Y, 0);
         piece.SetPosition(X, Y);
-        myPiece[X, Y] = piece;
+        if (IsWithInBounds(X,Y))
+        {
+            myPiece[X, Y] = piece;
+        }
     }
     public void PositionOnMatriz()
     {
@@ -115,7 +118,7 @@ public class GameManager : MonoBehaviour
            targetTile = null;
             Debug.Log("libera");
         }
-    }
+    } 
     public void Change()
     {
 
@@ -145,19 +148,66 @@ public class GameManager : MonoBehaviour
         {
             for (int j = 0; j < height; j++)
             {
-                if (i+1<width&&i-1>=0&& j+1 < height && j-1 >= 0)
+                if (i + 1 < width && i - 1 >= 0 && j + 1 < height && j - 1 >= 0)
                 {
                     if (myPiece[i, j].colorCode == myPiece[i + 1, j].colorCode&& myPiece[i, j].colorCode == myPiece[i - 1, j].colorCode)
                     {
-                        Debug.Log($"Match:{myPiece[i,j].transform.position}");
+                        Debug.Log($"Match:{myPiece[i,j].transform.position}, Width");
                     }
                     if (myPiece[i, j].colorCode == myPiece[i, j+1].colorCode && myPiece[i, j].colorCode == myPiece[i, j-1].colorCode)
                     {
-                        Debug.Log($"Match:{myPiece[i, j].transform.position}");
+                        Debug.Log($"Match:{myPiece[i, j].transform.position}, Height");
                     }
                 }
                 
             }
         }
+    }
+    bool IsWithInBounds (int x, int y)
+    {
+        return (x >= 0 && x < width && y >= 0 && y < height);
+    }
+     List<GamePiece> FindMatches(int startX, int startY, Vector3 SerchDirection, int minLength=3)
+    {
+        List<GamePiece> match = new List<GamePiece>();
+        GamePiece startPiece = null;
+        if (IsWithInBounds(startX,startY))
+        {
+            startPiece = myPiece[startX, startY];
+        }
+        if (startPiece!=null)
+        {
+            match.Add(startPiece);
+        }
+        else
+        {
+            return null;
+        }
+        int nextX;
+        int nextY;
+        int maxValue = (width > height) ? width : height;
+        for (int i = 1; i < maxValue - 1; i++)
+        {
+            nextX = startX + (int)Mathf.Clamp(SerchDirection.x, -1, 1) * i;
+            nextY = startY + (int)Mathf.Clamp(SerchDirection.y, -1, 1) * i;
+            if (!IsWithInBounds(nextX, nextY))
+            {
+                break;
+            }
+            GamePiece nextPiece = myPiece[nextX, nextY];
+            if (nextPiece.colorCode==startPiece.colorCode && !match.Contains(nextPiece))
+            {
+                match.Add(nextPiece);
+            }
+            else
+            {
+                break;
+            }
+        }
+        if (match.Count >= minLength)
+        {
+            return match;
+        }
+        return null;
     }
 }
