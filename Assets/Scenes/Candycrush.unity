@@ -152,8 +152,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7001c04e88b24ec4c8edaf4f995d660c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  height: 6
-  width: 4
+  height: 12
+  width: 6
   edge: 1
   prefab: {fileID: 6254257494482593451, guid: b57509b222072fb42817690a51f50931, type: 3}
   gamePiece:
@@ -169,6 +169,8 @@ MonoBehaviour:
   mainCamenra: {fileID: 1215747798}
   selectTile: {fileID: 0}
   targetTile: {fileID: 0}
+  matchFounded: []
+  enEjecucion: 0
 --- !u!4 &69152969
 Transform:
   m_ObjectHideFlags: 0

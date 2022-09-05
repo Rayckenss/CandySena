@@ -1,6 +1,8 @@
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
 
 public class GameManager : MonoBehaviour
 {
@@ -12,6 +14,8 @@ public class GameManager : MonoBehaviour
     public GameObject[] gamePiece;
     public GameObject mainCamenra;
     public Tile selectTile, targetTile;
+    public List<GamePiece> matchFounded;
+    public bool enEjecucion;
 
     private void Awake()
     {
@@ -25,6 +29,7 @@ public class GameManager : MonoBehaviour
         NewMap();
         CameraPosition();
         PositionOnMatriz();
+        enEjecucion = false;
     }
     void Update()
     {
@@ -91,7 +96,7 @@ public class GameManager : MonoBehaviour
     }
     public void SelectTile(Tile tile)
     {
-        if (selectTile==null)
+        if (selectTile==null&&!enEjecucion)
         {
             selectTile = tile;
             Debug.Log("Selecciona Tile");
@@ -119,10 +124,6 @@ public class GameManager : MonoBehaviour
             Debug.Log("libera");
         }
     } 
-    public void Change()
-    {
-
-    }
     bool IsNeighbour(Tile selected, Tile target)
     {
         if (Mathf.Abs(selected.transform.position.x-target.transform.position.x)==1&&selected.transform.position.y==target.transform.position.y)
@@ -142,7 +143,7 @@ public class GameManager : MonoBehaviour
         iniGp.Corutina(target.indiceX, target.indiceY);
         finGp.Corutina(selected.indiceX, selected.indiceY);
     }
-    public void Match()
+    /*public void Match()
     {
         for (int i = 0; i < width; i++)
         {
@@ -162,7 +163,7 @@ public class GameManager : MonoBehaviour
                 
             }
         }
-    }
+    }*/
     bool IsWithInBounds (int x, int y)
     {
         return (x >= 0 && x < width && y >= 0 && y < height);
@@ -209,5 +210,62 @@ public class GameManager : MonoBehaviour
             return match;
         }
         return null;
+    }
+    public List<GamePiece> FindVertical (int starX, int starY, int minLegth=3)
+    {
+        List<GamePiece> upList = FindMatches(starX, starY, new Vector3(0, 1f, 0));
+        List<GamePiece> downList = FindMatches(starX, starY, new Vector3(0, -1f, 0));
+        if (upList==null)
+        {
+            upList = new List<GamePiece>();
+        }
+        if (downList==null)
+        {
+            downList = new List<GamePiece>();
+        }
+        var combinedMatches = upList.Union(downList).ToList();
+        return (combinedMatches.Count >= minLegth) ? combinedMatches : null;
+    }
+    public List<GamePiece> FindHorizontal(int starX, int starY, int minLegth = 3)
+    {
+        List<GamePiece> leftList = FindMatches(starX, starY, new Vector3(-1f, 0f, 0));
+        List<GamePiece> rigthList = FindMatches(starX, starY, new Vector3(1f, 0f, 0));
+        if (leftList == null)
+        {
+            leftList = new List<GamePiece>();
+        }
+        if (rigthList == null)
+        {
+            rigthList = new List<GamePiece>();
+        }
+        var combinedMatches = leftList.Union(rigthList).ToList();
+        return (combinedMatches.Count >= minLegth) ? combinedMatches : null;
+    }
+
+    public void Check(int indexX, int indexY)
+    {
+        List<GamePiece> hList = FindHorizontal(indexX, indexY);
+        List<GamePiece> vList = FindVertical(indexX, indexY);
+
+        if (hList == null)
+        {
+            hList = new List<GamePiece>();
+        }
+
+        if (vList == null)
+        {
+            vList = new List<GamePiece>();
+        }
+
+        var AllList = hList.Union(vList).ToList();
+        Debug.Log(AllList.Count);
+        if (AllList.Count>=2)
+        {
+            foreach (GamePiece piece in AllList)
+            {
+                SpriteRenderer sr = myBoard[piece.indiceX, piece.indiceY].GetComponent<SpriteRenderer>();
+                sr.color = myPiece[piece.indiceX, piece.indiceY].GetComponent<SpriteRenderer>().color;
+            }
+        }
     }
 }

@@ -2,12 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class GamePiece : MonoBehaviour
 {
     public int indiceX, indiceY;
     [Range(0f, 5f)]
     public float time;
-    public bool ejecucion = true;
+    public bool enMovimiento;
     public Types tipos;
     public int colorCode;
     
@@ -22,14 +23,14 @@ public class GamePiece : MonoBehaviour
     }
     IEnumerator MovePiece(int x, int y, float tiempoDeAccion)
     {
-        ejecucion = false;
+        GameManager.Instance.enEjecucion = true;
+        enMovimiento = true;
         Vector3 posicionDeseada = new Vector3(x,y,0);
         Vector3 posicionInicial = transform.position;
         Debug.Log($"Start: {posicionInicial}, Desire: {posicionDeseada}");
         float tiempoTranscurrido = 0f;
         while(Vector3.Distance(transform.position,posicionDeseada)>0.01f)
         {
-            Debug.Log("Entra a la Corutina");
             float t =tiempoTranscurrido / tiempoDeAccion;
             switch (tipos)
             {
@@ -58,9 +59,10 @@ public class GamePiece : MonoBehaviour
         transform.position = posicionDeseada;
         SetPosition(x, y);
         GameManager.Instance.InitializePosition(x,y,this);
+        GameManager.Instance.enEjecucion = false;
         Debug.Log("Fin de la Corutina");
-        GameManager.Instance.Match();
-        ejecucion = true;
+        enMovimiento = false;
+        GameManager.Instance.Check(indiceX, indiceY);
     }
     IEnumerator TypeOfColor(int x, int y)
     {
@@ -84,7 +86,10 @@ public class GamePiece : MonoBehaviour
     }
     public void Corutina(int x, int y)
     {
-        StartCoroutine(MovePiece(x, y, time));
+        if (!enMovimiento)
+        {
+            StartCoroutine(MovePiece(x, y, time));
+        }
     }
     
 }
