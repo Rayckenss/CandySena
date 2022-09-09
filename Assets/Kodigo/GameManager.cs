@@ -20,6 +20,9 @@ public class GameManager : MonoBehaviour
     [Range(0f, 5f)]
     public float swapTime;
 
+    [Range(0f, 5f)]
+    public float collapseTime;
+
     private void Awake()
     {
         if (Instance == null)
@@ -131,7 +134,6 @@ public class GameManager : MonoBehaviour
         if (selectTile == null && !enEjecucion)
         {
             selectTile = tile;
-            Debug.Log("Selecciona Tile");
         }
     }
     public void TargetTile(Tile tile)
@@ -139,7 +141,6 @@ public class GameManager : MonoBehaviour
         if (selectTile != null)
         {
             targetTile = tile;
-            Debug.Log("Selecciona Objetivo");
         }
     }
     public void Released()
@@ -177,24 +178,26 @@ public class GameManager : MonoBehaviour
         GamePiece finGp = myPiece[target.indiceX, target.indiceY];
         if (iniGp != null && finGp != null)
         {
-            iniGp.Corutina(target.indiceX, target.indiceY);
-            finGp.Corutina(selected.indiceX, selected.indiceY);
+            iniGp.Corutina(target.indiceX, target.indiceY, swapTime);
+            finGp.Corutina(selected.indiceX, selected.indiceY, swapTime);
             yield return new WaitForSeconds(swapTime);
             List<GamePiece> selectedPieceMatches = Check(selected.indiceX, selected.indiceY);
             List<GamePiece> targetPieceMatches = Check(target.indiceX, target.indiceY);
             if (selectedPieceMatches.Count == 0 && targetPieceMatches.Count == 0)
             {
-                iniGp.Corutina(selected.indiceX, selected.indiceY);
-                finGp.Corutina(target.indiceX, target.indiceY);
+                iniGp.Corutina(selected.indiceX, selected.indiceY, swapTime);
+                finGp.Corutina(target.indiceX, target.indiceY, swapTime);
             }
             else
             {
                 yield return new WaitForSeconds(swapTime);
-                Eliminar(selectedPieceMatches);
-                Eliminar(targetPieceMatches);
+                ClearandFilltheBoard(selectedPieceMatches.Union(targetPieceMatches).ToList());
+
+                //Eliminar(selectedPieceMatches);
+                //Eliminar(targetPieceMatches);
+                //CollapseColumn(selectedPieceMatches);
+                //CollapseColumn(targetPieceMatches);
             }
-            //Prender(selected.indiceX, selected.indiceY);
-            //Prender(target.indiceX, target.indiceY);
         }
     }
     bool IsWithInBounds(int x, int y)
@@ -251,6 +254,16 @@ public class GameManager : MonoBehaviour
         }
         return null;
     }
+    List<GamePiece> Check(List<GamePiece> gamePieces, int minLength = 3)//FindMatchAt
+    {
+       
+        List<GamePiece> matches = new List<GamePiece>();
+        foreach (GamePiece piece in gamePieces)
+        {
+            matches = matches.Union(Check(piece.indiceX, piece.indiceY, minLength)).ToList();
+        }
+        return matches;
+    }
     List<GamePiece> EncontrarParejas()
     {
         List<GamePiece> combinedmatches = new List<GamePiece>();
@@ -266,8 +279,8 @@ public class GameManager : MonoBehaviour
     }
     public List<GamePiece> FindVertical(int starX, int starY, int minLegth = 3)
     {
-        List<GamePiece> upList = FindMatches(starX, starY, new Vector3(0, 1f, 0));
-        List<GamePiece> downList = FindMatches(starX, starY, new Vector3(0, -1f, 0));
+        List<GamePiece> upList = FindMatches(starX, starY, new Vector3(0, 1f, 0), 2);
+        List<GamePiece> downList = FindMatches(starX, starY, new Vector3(0, -1f, 0), 2);
         if (upList == null)
         {
             upList = new List<GamePiece>();
@@ -281,8 +294,8 @@ public class GameManager : MonoBehaviour
     }
     public List<GamePiece> FindHorizontal(int starX, int starY, int minLegth = 3)
     {
-        List<GamePiece> leftList = FindMatches(starX, starY, new Vector3(-1f, 0f, 0));
-        List<GamePiece> rigthList = FindMatches(starX, starY, new Vector3(1f, 0f, 0));
+        List<GamePiece> leftList = FindMatches(starX, starY, new Vector3(-1f, 0f, 0), 2);
+        List<GamePiece> rigthList = FindMatches(starX, starY, new Vector3(1f, 0f, 0), 2);
         if (leftList == null)
         {
             leftList = new List<GamePiece>();
@@ -294,10 +307,12 @@ public class GameManager : MonoBehaviour
         var combinedMatches = leftList.Union(rigthList).ToList();
         return (combinedMatches.Count >= minLegth) ? combinedMatches : null;
     }
-    public List<GamePiece> Check(int indexX, int indexY)
+    List<GamePiece> Check(int indexX, int indexY, int minLength = 3)
     {
-        List<GamePiece> hList = FindHorizontal(indexX, indexY);
-        List<GamePiece> vList = FindVertical(indexX, indexY);
+        List<GamePiece> hList = FindHorizontal(indexX, indexY, minLength);
+        List<GamePiece> vList = FindVertical(indexX, indexY, minLength);
+
+
 
         if (hList == null)
         {
@@ -323,7 +338,7 @@ public class GameManager : MonoBehaviour
                 {
                     if (myPiece[columna, j] != null)
                     {
-                        myPiece[columna, j].Corutina(columna, i);
+                        myPiece[columna, j].Corutina(columna, i, collapseTime);
                         myPiece[columna, i] = myPiece[columna, j];
                         myPiece[columna, i].SetPosition(columna, i);
                         if (!movingPieces.Contains(myPiece[columna, i]))
@@ -344,10 +359,11 @@ public class GameManager : MonoBehaviour
         List<int> columnsToCollapse = GetColumns(gamePieces);
         foreach (int columna in columnsToCollapse)
         {
-            movingPieces = movingPieces.Union(gamePieces).ToList();
+            movingPieces = movingPieces.Union(MovementPieces(columna)).ToList();
         }
+        return movingPieces;
     }
-    List<int>GetColumns(List<GamePiece> gamePieces)
+    List<int> GetColumns(List<GamePiece> gamePieces)
     {
         List<int> indiceColumnas = new List<int>();
         foreach (GamePiece piece in gamePieces)
@@ -359,6 +375,7 @@ public class GameManager : MonoBehaviour
         }
         return indiceColumnas;
     }
+    //List<GamePiece>
     void ApagarLuces(int x, int y)
     {
         SpriteRenderer sr = myBoard[x, y].GetComponent<SpriteRenderer>();
@@ -403,7 +420,50 @@ public class GameManager : MonoBehaviour
     {
         foreach (GamePiece piece in gamePiece)
         {
-            Eliminar(piece.indiceX, piece.indiceY);
+            if (piece != null)
+            {
+                Eliminar(piece.indiceX, piece.indiceY);
+            }
         }
+    }
+    void ClearandFilltheBoard(List<GamePiece> gamePieces)
+    {
+        StartCoroutine(ClearandFill(gamePieces));
+    }
+    IEnumerator ClearandFill(List<GamePiece> gamePieces)
+    {
+        yield return StartCoroutine(ClearandCollpse(gamePieces));
+        yield return null;
+        yield return StartCoroutine(RefillRoutine());
+    }
+    IEnumerator ClearandCollpse(List<GamePiece> gamePieces)
+    {
+        List<GamePiece> movingPieces = new List<GamePiece>();
+        List<GamePiece> matches = new List<GamePiece>();
+        yield return new WaitForSeconds(0.25f);
+        bool isFinished = false;
+        while (!isFinished)
+        {
+            Eliminar(gamePieces);
+            yield return new WaitForSeconds(0.25f);
+            movingPieces = CollapseColumn(gamePieces);
+            yield return new WaitForSeconds(0.25f);
+            matches = Check(movingPieces);
+            if (matches.Count == 0)
+            {
+                isFinished = true;
+                break;
+            }
+            else
+            {
+                yield return StartCoroutine(ClearandCollpse(matches));
+            }
+            yield return null;
+        }
+        yield return null;
+    }
+    IEnumerator RefillRoutine()
+    {
+        yield return null;
     }
 }

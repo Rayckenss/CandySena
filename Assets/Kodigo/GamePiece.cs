@@ -26,7 +26,6 @@ public class GamePiece : MonoBehaviour
         enMovimiento = true;
         Vector3 posicionDeseada = new Vector3(x, y, 0);
         Vector3 posicionInicial = transform.position;
-        Debug.Log($"Start: {posicionInicial}, Desire: {posicionDeseada}");
         float tiempoTranscurrido = 0f;
         while (Vector3.Distance(transform.position, posicionDeseada) > 0.01f)
         {
@@ -59,7 +58,6 @@ public class GamePiece : MonoBehaviour
         SetPosition(x, y);
         GameManager.Instance.InitializePosition(x, y, this);
         GameManager.Instance.enEjecucion = false;
-        Debug.Log("Fin de la Corutina");
         enMovimiento = false;
     }
 
@@ -71,7 +69,7 @@ public class GamePiece : MonoBehaviour
         Suave,
         Muysuave
     }
-    public void Corutina(int x, int y)
+    public void Corutina(int x, int y, float time)
     {
         if (!enMovimiento)
         {
