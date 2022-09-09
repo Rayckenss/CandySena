@@ -17,9 +17,12 @@ public class GameManager : MonoBehaviour
     public List<GamePiece> matchFounded;
     public bool enEjecucion;
 
+    [Range(0f, 5f)]
+    public float swapTime;
+
     private void Awake()
     {
-        if (Instance==null)
+        if (Instance == null)
         {
             Instance = this;
         }
@@ -39,20 +42,6 @@ public class GameManager : MonoBehaviour
             PositionOnMatriz();
         }
     }
-    public void NewMap()
-    {
-        myBoard = new Tile[width, height];
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
-                GameObject go = Instantiate(prefab, new Vector3(i, j,0), Quaternion.identity,transform);
-                myBoard[i, j] = go.GetComponent<Tile>();
-                myBoard[i, j].Indice(i, j);
-                go.name = "Tile (" + i + "," + j + ")";
-            }
-        }
-    }
     void CameraPosition()
     {
         mainCamenra.transform.position = new Vector3(((float)width / 2) - 0.5f, ((float)height / 2) - 0.5f, mainCamenra.transform.position.z);
@@ -65,20 +54,18 @@ public class GameManager : MonoBehaviour
             mainCamenra.GetComponent<Camera>().orthographicSize = ((((float)Screen.height * (float)width) / (float)Screen.width) / 2) + ((float)edge * 2);
         }
     }
-    public GameObject RandomGamePiece ()
+    public void NewMap()
     {
-        int numeroR = Random.Range(0, gamePiece.Length);
-        GameObject buffer = gamePiece[numeroR];
-        buffer.GetComponent<GamePiece>().SetPrefab(numeroR);
-        return buffer;
-    }
-    public void InitializePosition (int X, int Y, GamePiece piece)
-    {
-        piece.transform.position = new Vector3(X, Y, 0);
-        piece.SetPosition(X, Y);
-        if (IsWithInBounds(X,Y))
+        myBoard = new Tile[width, height];
+        for (int i = 0; i < width; i++)
         {
-            myPiece[X, Y] = piece;
+            for (int j = 0; j < height; j++)
+            {
+                GameObject go = Instantiate(prefab, new Vector3(i, j, 0), Quaternion.identity, transform);
+                myBoard[i, j] = go.GetComponent<Tile>();
+                myBoard[i, j].Indice(i, j);
+                go.name = "Tile (" + i + "," + j + ")";
+            }
         }
     }
     public void PositionOnMatriz()
@@ -88,15 +75,60 @@ public class GameManager : MonoBehaviour
         {
             for (int j = 0; j < height; j++)
             {
-                GameObject go = Instantiate(RandomGamePiece(), new Vector3(i,j, 0), Quaternion.identity, transform);
-                InitializePosition(i, j, go.GetComponent<GamePiece>());
-                go.name = "Circle (" + i + "," + j + ")";
+                FillPieces(i, j);
             }
         }
+        bool isFilled = false;
+        int maxInterations = 100;
+        int interations = 0;
+        while (!isFilled && interations < maxInterations)
+        {
+            List<GamePiece> matches = EncontrarParejas();
+            if (matches.Count == 0)
+            {
+                isFilled = true;
+                break;
+            }
+            else
+            {
+                Remplazar(matches);
+            }
+            interations++;
+        }
+    }
+    public void InitializePosition(int X, int Y, GamePiece piece)
+    {
+        piece.transform.position = new Vector3(X, Y, 0);
+        piece.SetPosition(X, Y);
+        if (IsWithInBounds(X, Y))
+        {
+            myPiece[X, Y] = piece;
+        }
+    }
+    public GameObject RandomGamePiece()
+    {
+        int numeroR = Random.Range(0, gamePiece.Length);
+        GameObject buffer = gamePiece[numeroR];
+        buffer.GetComponent<GamePiece>().SetPrefab(numeroR);
+        return buffer;
+    }
+    void Remplazar(List<GamePiece> lista)
+    {
+        Eliminar(lista);
+        foreach (GamePiece piece in lista)
+        {
+            FillPieces(piece.indiceX, piece.indiceY);
+        }
+    }
+    void FillPieces(int x, int y)
+    {
+        GameObject go = Instantiate(RandomGamePiece(), new Vector3(x, y, 0), Quaternion.identity, transform);
+        InitializePosition(x, y, go.GetComponent<GamePiece>());
+        go.name = "Circle (" + x + "," + y + ")";
     }
     public void SelectTile(Tile tile)
     {
-        if (selectTile==null&&!enEjecucion)
+        if (selectTile == null && !enEjecucion)
         {
             selectTile = tile;
             Debug.Log("Selecciona Tile");
@@ -104,7 +136,7 @@ public class GameManager : MonoBehaviour
     }
     public void TargetTile(Tile tile)
     {
-        if (selectTile!=null)
+        if (selectTile != null)
         {
             targetTile = tile;
             Debug.Log("Selecciona Objetivo");
@@ -112,21 +144,20 @@ public class GameManager : MonoBehaviour
     }
     public void Released()
     {
-        if (selectTile != null && targetTile != null&&IsNeighbour(selectTile,targetTile))
+        if (selectTile != null && targetTile != null && IsNeighbour(selectTile, targetTile))
         {
             SwitchPieces(selectTile, targetTile);
         }
-
         if (selectTile != null || targetTile != null)
-        { 
+        {
             selectTile = null;
-           targetTile = null;
-            Debug.Log("libera");
+            targetTile = null;
         }
-    } 
+
+    }
     bool IsNeighbour(Tile selected, Tile target)
     {
-        if (Mathf.Abs(selected.transform.position.x-target.transform.position.x)==1&&selected.transform.position.y==target.transform.position.y)
+        if (Mathf.Abs(selected.transform.position.x - target.transform.position.x) == 1 && selected.transform.position.y == target.transform.position.y)
         {
             return true;
         }
@@ -138,45 +169,47 @@ public class GameManager : MonoBehaviour
     }
     public void SwitchPieces(Tile selected, Tile target)
     {
+        StartCoroutine(SwitchTilesRoutine(selected, target));
+    }
+    IEnumerator SwitchTilesRoutine(Tile selected, Tile target)
+    {
         GamePiece iniGp = myPiece[selected.indiceX, selected.indiceY];
         GamePiece finGp = myPiece[target.indiceX, target.indiceY];
-        iniGp.Corutina(target.indiceX, target.indiceY);
-        finGp.Corutina(selected.indiceX, selected.indiceY);
-    }
-    /*public void Match()
-    {
-        for (int i = 0; i < width; i++)
+        if (iniGp != null && finGp != null)
         {
-            for (int j = 0; j < height; j++)
+            iniGp.Corutina(target.indiceX, target.indiceY);
+            finGp.Corutina(selected.indiceX, selected.indiceY);
+            yield return new WaitForSeconds(swapTime);
+            List<GamePiece> selectedPieceMatches = Check(selected.indiceX, selected.indiceY);
+            List<GamePiece> targetPieceMatches = Check(target.indiceX, target.indiceY);
+            if (selectedPieceMatches.Count == 0 && targetPieceMatches.Count == 0)
             {
-                if (i + 1 < width && i - 1 >= 0 && j + 1 < height && j - 1 >= 0)
-                {
-                    if (myPiece[i, j].colorCode == myPiece[i + 1, j].colorCode&& myPiece[i, j].colorCode == myPiece[i - 1, j].colorCode)
-                    {
-                        Debug.Log($"Match:{myPiece[i,j].transform.position}, Width");
-                    }
-                    if (myPiece[i, j].colorCode == myPiece[i, j+1].colorCode && myPiece[i, j].colorCode == myPiece[i, j-1].colorCode)
-                    {
-                        Debug.Log($"Match:{myPiece[i, j].transform.position}, Height");
-                    }
-                }
-                
+                iniGp.Corutina(selected.indiceX, selected.indiceY);
+                finGp.Corutina(target.indiceX, target.indiceY);
             }
+            else
+            {
+                yield return new WaitForSeconds(swapTime);
+                Eliminar(selectedPieceMatches);
+                Eliminar(targetPieceMatches);
+            }
+            //Prender(selected.indiceX, selected.indiceY);
+            //Prender(target.indiceX, target.indiceY);
         }
-    }*/
-    bool IsWithInBounds (int x, int y)
+    }
+    bool IsWithInBounds(int x, int y)
     {
         return (x >= 0 && x < width && y >= 0 && y < height);
     }
-     List<GamePiece> FindMatches(int startX, int startY, Vector3 SerchDirection, int minLength=3)
+    List<GamePiece> FindMatches(int startX, int startY, Vector3 SerchDirection, int minLength = 3)
     {
         List<GamePiece> match = new List<GamePiece>();
         GamePiece startPiece = null;
-        if (IsWithInBounds(startX,startY))
+        if (IsWithInBounds(startX, startY))
         {
             startPiece = myPiece[startX, startY];
         }
-        if (startPiece!=null)
+        if (startPiece != null)
         {
             match.Add(startPiece);
         }
@@ -196,13 +229,20 @@ public class GameManager : MonoBehaviour
                 break;
             }
             GamePiece nextPiece = myPiece[nextX, nextY];
-            if (nextPiece.colorCode==startPiece.colorCode && !match.Contains(nextPiece))
+            if (nextPiece == null)
             {
-                match.Add(nextPiece);
+                break;
             }
             else
             {
-                break;
+                if (nextPiece.colorCode == startPiece.colorCode && !match.Contains(nextPiece))
+                {
+                    match.Add(nextPiece);
+                }
+                else
+                {
+                    break;
+                }
             }
         }
         if (match.Count >= minLength)
@@ -211,15 +251,28 @@ public class GameManager : MonoBehaviour
         }
         return null;
     }
-    public List<GamePiece> FindVertical (int starX, int starY, int minLegth=3)
+    List<GamePiece> EncontrarParejas()
+    {
+        List<GamePiece> combinedmatches = new List<GamePiece>();
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                var matches = Check(i, j);
+                combinedmatches = combinedmatches.Union(matches).ToList();
+            }
+        }
+        return combinedmatches;
+    }
+    public List<GamePiece> FindVertical(int starX, int starY, int minLegth = 3)
     {
         List<GamePiece> upList = FindMatches(starX, starY, new Vector3(0, 1f, 0));
         List<GamePiece> downList = FindMatches(starX, starY, new Vector3(0, -1f, 0));
-        if (upList==null)
+        if (upList == null)
         {
             upList = new List<GamePiece>();
         }
-        if (downList==null)
+        if (downList == null)
         {
             downList = new List<GamePiece>();
         }
@@ -241,8 +294,7 @@ public class GameManager : MonoBehaviour
         var combinedMatches = leftList.Union(rigthList).ToList();
         return (combinedMatches.Count >= minLegth) ? combinedMatches : null;
     }
-
-    public void Check(int indexX, int indexY)
+    public List<GamePiece> Check(int indexX, int indexY)
     {
         List<GamePiece> hList = FindHorizontal(indexX, indexY);
         List<GamePiece> vList = FindVertical(indexX, indexY);
@@ -258,14 +310,100 @@ public class GameManager : MonoBehaviour
         }
 
         var AllList = hList.Union(vList).ToList();
-        Debug.Log(AllList.Count);
-        if (AllList.Count>=2)
+        return AllList;
+    }
+    List<GamePiece> MovementPieces(int columna)
+    {
+        List<GamePiece> movingPieces = new List<GamePiece>();
+        for (int i = 0; i < height - 1; i++)
         {
-            foreach (GamePiece piece in AllList)
+            if (myPiece[columna, i] == null)
             {
-                SpriteRenderer sr = myBoard[piece.indiceX, piece.indiceY].GetComponent<SpriteRenderer>();
-                sr.color = myPiece[piece.indiceX, piece.indiceY].GetComponent<SpriteRenderer>().color;
+                for (int j = i + 1; j < height; j++)
+                {
+                    if (myPiece[columna, j] != null)
+                    {
+                        myPiece[columna, j].Corutina(columna, i);
+                        myPiece[columna, i] = myPiece[columna, j];
+                        myPiece[columna, i].SetPosition(columna, i);
+                        if (!movingPieces.Contains(myPiece[columna, i]))
+                        {
+                            movingPieces.Add(myPiece[columna, i]);
+                        }
+                        myPiece[columna, j] = null;
+                        break;
+                    }
+                }
             }
+        }
+        return movingPieces;
+    }
+    List<GamePiece> CollapseColumn(List<GamePiece> gamePieces)
+    {
+        List<GamePiece> movingPieces = new List<GamePiece>();
+        List<int> columnsToCollapse = GetColumns(gamePieces);
+        foreach (int columna in columnsToCollapse)
+        {
+            movingPieces = movingPieces.Union(gamePieces).ToList();
+        }
+    }
+    List<int>GetColumns(List<GamePiece> gamePieces)
+    {
+        List<int> indiceColumnas = new List<int>();
+        foreach (GamePiece piece in gamePieces)
+        {
+            if (!indiceColumnas.Contains(piece.indiceX))
+            {
+                indiceColumnas.Add(piece.indiceX);
+            }
+        }
+        return indiceColumnas;
+    }
+    void ApagarLuces(int x, int y)
+    {
+        SpriteRenderer sr = myBoard[x, y].GetComponent<SpriteRenderer>();
+        sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, 0f);
+    }
+    void PrenderLuces(int x, int y, Color color)
+    {
+        SpriteRenderer sr = myBoard[x, y].GetComponent<SpriteRenderer>();
+        sr.color = color;
+    }
+    public void PrenderResultados()
+    {
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                Check(i, j);
+            }
+        }
+    }
+    public void Prender(int x, int y)
+    {
+        ApagarLuces(x, y);
+        var combinedmatches = Check(x, y);
+        if (combinedmatches.Count > 0)
+            foreach (GamePiece piece in combinedmatches)
+            {
+                PrenderLuces(piece.indiceX, piece.indiceY, myPiece[x, y].GetComponent<SpriteRenderer>().color);
+            }
+    }
+    void Eliminar(int x, int y)
+    {
+        GamePiece eliminarpiece = myPiece[x, y];
+        if (eliminarpiece != null)
+        {
+            myPiece[x, y] = null;
+            Destroy(eliminarpiece.gameObject);
+        }
+        ApagarLuces(x, y);
+    }
+    void Eliminar(List<GamePiece> gamePiece)
+    {
+        foreach (GamePiece piece in gamePiece)
+        {
+            Eliminar(piece.indiceX, piece.indiceY);
         }
     }
 }

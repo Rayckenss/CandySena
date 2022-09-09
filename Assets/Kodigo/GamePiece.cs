@@ -7,11 +7,10 @@ public class GamePiece : MonoBehaviour
 {
     public int indiceX, indiceY;
     [Range(0f, 5f)]
-    public float time;
     public bool enMovimiento;
     public Types tipos;
     public int colorCode;
-    
+
     public void SetPosition(int X, int Y)
     {
         indiceX = X;
@@ -19,23 +18,23 @@ public class GamePiece : MonoBehaviour
     }
     public void SetPrefab(int color)
     {
-        colorCode=color;
+        colorCode = color;
     }
     IEnumerator MovePiece(int x, int y, float tiempoDeAccion)
     {
         GameManager.Instance.enEjecucion = true;
         enMovimiento = true;
-        Vector3 posicionDeseada = new Vector3(x,y,0);
+        Vector3 posicionDeseada = new Vector3(x, y, 0);
         Vector3 posicionInicial = transform.position;
         Debug.Log($"Start: {posicionInicial}, Desire: {posicionDeseada}");
         float tiempoTranscurrido = 0f;
-        while(Vector3.Distance(transform.position,posicionDeseada)>0.01f)
+        while (Vector3.Distance(transform.position, posicionDeseada) > 0.01f)
         {
-            float t =tiempoTranscurrido / tiempoDeAccion;
+            float t = tiempoTranscurrido / tiempoDeAccion;
             switch (tipos)
             {
                 case Types.Linear:
-                    
+
                     break;
                 case Types.Senoidal:
                     t = Mathf.Sin(t * Mathf.PI * 0.5f);
@@ -58,24 +57,12 @@ public class GamePiece : MonoBehaviour
         }
         transform.position = posicionDeseada;
         SetPosition(x, y);
-        GameManager.Instance.InitializePosition(x,y,this);
+        GameManager.Instance.InitializePosition(x, y, this);
         GameManager.Instance.enEjecucion = false;
         Debug.Log("Fin de la Corutina");
         enMovimiento = false;
-        GameManager.Instance.Check(indiceX, indiceY);
     }
-    IEnumerator TypeOfColor(int x, int y)
-    {
-        return null;
-    }
-    private void Update()
-    {
-        /*if (Input.GetKeyDown(KeyCode.RightArrow)&&ejecucion)
-        {
-            StartCoroutine(MovePiece(new Vector3((int)transform.position.x + 1, (int)transform.position.y, (int)transform.position.z), time));
-            Debug.Log("llamr corutina");
-        }*/
-    }
+
     public enum Types
     {
         Linear,
@@ -88,8 +75,8 @@ public class GamePiece : MonoBehaviour
     {
         if (!enMovimiento)
         {
-            StartCoroutine(MovePiece(x, y, time));
+            StartCoroutine(MovePiece(x, y, GameManager.Instance.swapTime));
         }
     }
-    
+
 }

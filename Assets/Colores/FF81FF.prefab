@@ -99,6 +99,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   indiceX: 0
   indiceY: 0
-  time: 2
-  ejecucion: 1
+  time: 0
+  enMovimiento: 0
   tipos: 1
+  colorCode: 2

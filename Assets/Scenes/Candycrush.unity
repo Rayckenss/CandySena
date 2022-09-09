@@ -171,6 +171,7 @@ MonoBehaviour:
   targetTile: {fileID: 0}
   matchFounded: []
   enEjecucion: 0
+  swapTime: 1.77
 --- !u!4 &69152969
 Transform:
   m_ObjectHideFlags: 0
