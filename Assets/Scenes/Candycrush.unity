@@ -169,7 +169,6 @@ MonoBehaviour:
   mainCamenra: {fileID: 1215747798}
   selectTile: {fileID: 0}
   targetTile: {fileID: 0}
-  matchFounded: []
   enEjecucion: 0
   swapTime: 0.5
   collapseTime: 0.21

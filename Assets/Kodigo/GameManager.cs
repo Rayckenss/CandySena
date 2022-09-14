@@ -7,14 +7,19 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
+
     public int height, width, edge;
+
     public Tile[,] myBoard;
-    public GamePiece[,] myPiece;
     public GameObject prefab;
+    Transform board;
+
+    public GamePiece[,] myPiece;
     public GameObject[] gamePiece;
+
     public GameObject mainCamenra;
+
     public Tile selectTile, targetTile;
-    public List<GamePiece> matchFounded;
     public bool enEjecucion;
 
     [Range(0f, 5f)]
@@ -23,6 +28,7 @@ public class GameManager : MonoBehaviour
     [Range(0f, 5f)]
     public float collapseTime;
 
+    //Unity begining
     private void Awake()
     {
         if (Instance == null)
@@ -32,6 +38,8 @@ public class GameManager : MonoBehaviour
     }
     void Start()
     {
+        myPiece = new GamePiece[width, height];
+        myBoard = new Tile[width, height];
         NewMap();
         CameraPosition();
         PositionOnMatriz();
@@ -59,7 +67,7 @@ public class GameManager : MonoBehaviour
     }
     public void NewMap()
     {
-        myBoard = new Tile[width, height];
+
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < height; j++)
@@ -73,12 +81,16 @@ public class GameManager : MonoBehaviour
     }
     public void PositionOnMatriz()
     {
-        myPiece = new GamePiece[width, height];
+        List<GamePiece> addedPieces = new List<GamePiece>();
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < height; j++)
             {
-                FillPieces(i, j);
+                if (myPiece[i, j] == null)
+                {
+                    GamePiece gamePiece = FillPieces(i, j);
+                    addedPieces.Add(gamePiece);
+                }
             }
         }
         bool isFilled = false;
@@ -94,6 +106,7 @@ public class GameManager : MonoBehaviour
             }
             else
             {
+                matches = matches.Intersect(addedPieces).ToList();
                 Remplazar(matches);
             }
             interations++;
@@ -123,11 +136,12 @@ public class GameManager : MonoBehaviour
             FillPieces(piece.indiceX, piece.indiceY);
         }
     }
-    void FillPieces(int x, int y)
+    private GamePiece FillPieces(int x, int y)
     {
         GameObject go = Instantiate(RandomGamePiece(), new Vector3(x, y, 0), Quaternion.identity, transform);
         InitializePosition(x, y, go.GetComponent<GamePiece>());
         go.name = "Circle (" + x + "," + y + ")";
+        return go.GetComponent<GamePiece>();
     }
     public void SelectTile(Tile tile)
     {
@@ -256,7 +270,7 @@ public class GameManager : MonoBehaviour
     }
     List<GamePiece> Check(List<GamePiece> gamePieces, int minLength = 3)//FindMatchAt
     {
-       
+
         List<GamePiece> matches = new List<GamePiece>();
         foreach (GamePiece piece in gamePieces)
         {
@@ -432,9 +446,11 @@ public class GameManager : MonoBehaviour
     }
     IEnumerator ClearandFill(List<GamePiece> gamePieces)
     {
+        enEjecucion = true;
         yield return StartCoroutine(ClearandCollpse(gamePieces));
         yield return null;
         yield return StartCoroutine(RefillRoutine());
+        enEjecucion = false;
     }
     IEnumerator ClearandCollpse(List<GamePiece> gamePieces)
     {
@@ -447,7 +463,11 @@ public class GameManager : MonoBehaviour
             Eliminar(gamePieces);
             yield return new WaitForSeconds(0.25f);
             movingPieces = CollapseColumn(gamePieces);
-            yield return new WaitForSeconds(0.25f);
+            while (!EstaColapsado(gamePieces))
+            {
+                yield return new WaitForEndOfFrame();
+            }
+            yield return new WaitForSeconds(0.5f);
             matches = Check(movingPieces);
             if (matches.Count == 0)
             {
@@ -458,12 +478,26 @@ public class GameManager : MonoBehaviour
             {
                 yield return StartCoroutine(ClearandCollpse(matches));
             }
-            yield return null;
         }
         yield return null;
     }
     IEnumerator RefillRoutine()
     {
+        PositionOnMatriz();
         yield return null;
+    }
+    bool EstaColapsado(List<GamePiece> gamePieces)
+    {
+        foreach (GamePiece piece in gamePieces)
+        {
+            if (piece != null)
+            {
+                if (piece.transform.position.y - (float)piece.indiceY > 0.001f)
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
