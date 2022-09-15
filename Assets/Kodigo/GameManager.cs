@@ -2,6 +2,7 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 
 public class GameManager : MonoBehaviour
@@ -28,7 +29,18 @@ public class GameManager : MonoBehaviour
     [Range(0f, 5f)]
     public float collapseTime;
 
-    //Unity begining
+    [Header("Reloj")]
+    [Tooltip("Tiempo iniciar en Segundos")]
+    public int tInicial;
+    [Tooltip("Escala del Tiempo del Reloj")]
+    [Range(-10.0f, 10.0f)]
+    public float escalaDeTiempo = 1;
+    private float tFrameTScale = 0f;
+    private float tEnSegundos = 0f;
+    private float escalatiempoPausa, escalaTInicial;
+    public TMP_Text reloj;
+
+
     private void Awake()
     {
         if (Instance == null)
@@ -44,14 +56,37 @@ public class GameManager : MonoBehaviour
         CameraPosition();
         PositionOnMatriz();
         enEjecucion = false;
+
+        //Reloj durante el juego
+        escalaTInicial = escalaDeTiempo;
+        tEnSegundos = tInicial;
+        ActualizarReloj(tInicial);
+
     }
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.F1))
-        {
+        //Reloj
+        tFrameTScale = Time.deltaTime * escalaDeTiempo;
+        tEnSegundos += tFrameTScale;
+        ActualizarReloj(tEnSegundos);
 
-            PositionOnMatriz();
+        if (Input.GetKey(KeyCode.F1))
+        {
+            StartCoroutine(Restart());
         }
+    }
+    void ActualizarReloj(float tiempo)
+    {
+        int minutos = 0;
+        int segundos = 0;
+        //int milisegundos=0;
+        string textoDelReloj;
+        if (tiempo < 0) tiempo = 0;
+        minutos = (int)tiempo / 60;
+        segundos = (int)tiempo % 60;
+        //milisegundos=(int)tiempo/1000;
+        textoDelReloj = minutos.ToString("00") + ":" + segundos.ToString("00");//+ ":" + milisegundos.ToString("00");
+        reloj.text = textoDelReloj;
     }
     void CameraPosition()
     {
@@ -206,11 +241,6 @@ public class GameManager : MonoBehaviour
             {
                 yield return new WaitForSeconds(swapTime);
                 ClearandFilltheBoard(selectedPieceMatches.Union(targetPieceMatches).ToList());
-
-                //Eliminar(selectedPieceMatches);
-                //Eliminar(targetPieceMatches);
-                //CollapseColumn(selectedPieceMatches);
-                //CollapseColumn(targetPieceMatches);
             }
         }
     }
@@ -389,7 +419,6 @@ public class GameManager : MonoBehaviour
         }
         return indiceColumnas;
     }
-    //List<GamePiece>
     void ApagarLuces(int x, int y)
     {
         SpriteRenderer sr = myBoard[x, y].GetComponent<SpriteRenderer>();
@@ -454,6 +483,7 @@ public class GameManager : MonoBehaviour
     }
     IEnumerator ClearandCollpse(List<GamePiece> gamePieces)
     {
+        enEjecucion = false;
         List<GamePiece> movingPieces = new List<GamePiece>();
         List<GamePiece> matches = new List<GamePiece>();
         yield return new WaitForSeconds(0.25f);
@@ -479,6 +509,7 @@ public class GameManager : MonoBehaviour
                 yield return StartCoroutine(ClearandCollpse(matches));
             }
         }
+        enEjecucion = true;
         yield return null;
     }
     IEnumerator RefillRoutine()
@@ -499,5 +530,23 @@ public class GameManager : MonoBehaviour
             }
         }
         return true;
+    }
+    IEnumerator Restart()
+    {
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                Eliminar(i, j);
+            }
+        }
+        yield return new WaitForEndOfFrame();
+        tEnSegundos = 0f;
+        PositionOnMatriz();
+        yield return new WaitForEndOfFrame();
+    }
+    public void RestartButton()
+    {
+        StartCoroutine(Restart());
     }
 }
