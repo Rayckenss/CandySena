@@ -3,29 +3,25 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
-
+    [Header("Parametros de juego")]
     public int height, width, edge;
-
     public Tile[,] myBoard;
     public GameObject prefab;
     Transform board;
-
     public GamePiece[,] myPiece;
     public GameObject[] gamePiece;
-
     public GameObject mainCamenra;
-
     public Tile selectTile, targetTile;
     public bool enEjecucion;
-
     [Range(0f, 5f)]
     public float swapTime;
-
     [Range(0f, 5f)]
     public float collapseTime;
 
@@ -39,6 +35,10 @@ public class GameManager : MonoBehaviour
     private float tEnSegundos = 0f;
     private float escalatiempoPausa, escalaTInicial;
     public TMP_Text reloj;
+
+    [Header("Interfaz Gráfica")]
+    public Image sound;
+    public Sprite soundOn, soundOff;
 
 
     private void Awake()
@@ -61,6 +61,9 @@ public class GameManager : MonoBehaviour
         escalaTInicial = escalaDeTiempo;
         tEnSegundos = tInicial;
         ActualizarReloj(tInicial);
+        //Music
+        sound.sprite = OptionManager.music ? soundOff : soundOn;
+        GetComponent<AudioSource>().mute = OptionManager.music;
 
     }
     void Update()
@@ -548,5 +551,15 @@ public class GameManager : MonoBehaviour
     public void RestartButton()
     {
         StartCoroutine(Restart());
+    }
+    public void SoundButton()
+    {
+        OptionManager.music = !OptionManager.music;
+        sound.sprite = OptionManager.music ? soundOff : soundOn;
+        GetComponent<AudioSource>().mute = OptionManager.music;
+    }
+    public void ExitButton()
+    {
+        SceneManager.LoadScene(0);
     }
 }

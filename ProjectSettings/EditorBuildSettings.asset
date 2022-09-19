@@ -4,5 +4,11 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Inicio.unity
+    guid: 0db39c1c62e8fb54fa7e2bdcb4af9e67
+  - enabled: 1
+    path: Assets/Scenes/Candycrush.unity
+    guid: 4140e436e282aa94084059bfa9b8dd12
   m_configObjects: {}
