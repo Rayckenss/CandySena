@@ -24,6 +24,8 @@ public class GameManager : MonoBehaviour
     public float swapTime;
     [Range(0f, 5f)]
     public float collapseTime;
+    int puntuacion;
+    public static bool estaPausado = false;
 
     [Header("Reloj")]
     [Tooltip("Tiempo iniciar en Segundos")]
@@ -38,7 +40,12 @@ public class GameManager : MonoBehaviour
 
     [Header("Interfaz Gráfica")]
     public Image sound;
+    public Image pause;
+    public Sprite pauseOn, PauseOff;
     public Sprite soundOn, soundOff;
+    public TMP_Text puntajeEnPantalla;
+    public GameObject menuPausa;
+    public GameObject banana;
 
 
     private void Awake()
@@ -56,6 +63,11 @@ public class GameManager : MonoBehaviour
         CameraPosition();
         PositionOnMatriz();
         enEjecucion = false;
+        puntuacion = 0;
+        estaPausado = false;
+        pause.sprite = estaPausado ? pauseOn : PauseOff;
+        menuPausa.SetActive(false);
+        banana.SetActive(false);
 
         //Reloj durante el juego
         escalaTInicial = escalaDeTiempo;
@@ -68,6 +80,10 @@ public class GameManager : MonoBehaviour
     }
     void Update()
     {
+        if (estaPausado)
+        {
+            return;
+        }
         //Reloj
         tFrameTScale = Time.deltaTime * escalaDeTiempo;
         tEnSegundos += tFrameTScale;
@@ -486,14 +502,23 @@ public class GameManager : MonoBehaviour
     }
     IEnumerator ClearandCollpse(List<GamePiece> gamePieces)
     {
-        enEjecucion = false;
+        enEjecucion = true;
         List<GamePiece> movingPieces = new List<GamePiece>();
         List<GamePiece> matches = new List<GamePiece>();
         yield return new WaitForSeconds(0.25f);
         bool isFinished = false;
         while (!isFinished)
         {
-            Eliminar(gamePieces);
+            while(estaPausado)
+            {
+                yield return null;
+            }
+            foreach (GamePiece piece in gamePieces)
+            {
+                Points(10);
+                Eliminar(piece.indiceX, piece.indiceY);
+            }
+            //Eliminar(gamePieces);
             yield return new WaitForSeconds(0.25f);
             movingPieces = CollapseColumn(gamePieces);
             while (!EstaColapsado(gamePieces))
@@ -512,7 +537,7 @@ public class GameManager : MonoBehaviour
                 yield return StartCoroutine(ClearandCollpse(matches));
             }
         }
-        enEjecucion = true;
+        enEjecucion = false;
         yield return null;
     }
     IEnumerator RefillRoutine()
@@ -545,7 +570,11 @@ public class GameManager : MonoBehaviour
         }
         yield return new WaitForEndOfFrame();
         tEnSegundos = 0f;
+        puntuacion = 0;
+        puntajeEnPantalla.text = "000";
         PositionOnMatriz();
+        estaPausado = false;
+        pause.sprite = estaPausado ? pauseOn : PauseOff;
         yield return new WaitForEndOfFrame();
     }
     public void RestartButton()
@@ -561,5 +590,29 @@ public class GameManager : MonoBehaviour
     public void ExitButton()
     {
         SceneManager.LoadScene(0);
+    }
+    public void PauseButton()
+    {
+        estaPausado = !estaPausado;
+        if (estaPausado)
+        {
+            enEjecucion = true;
+            menuPausa.SetActive(true);
+            banana.SetActive(true);
+        }
+        else
+        {
+            enEjecucion = false;
+            menuPausa.SetActive(false);
+            banana.SetActive(false);
+        }
+        pause.sprite = estaPausado ? pauseOn : PauseOff;
+    }
+    void Points(int pnt)
+    {
+        puntuacion += pnt;
+        string puntaje;
+        puntaje = puntuacion.ToString("000");
+        puntajeEnPantalla.text = puntaje;
     }
 }
