@@ -150,7 +150,7 @@ public class GameManager : MonoBehaviour
         bool isFilled = false;
         int maxInterations = 100;
         int interations = 0;
-        while (!isFilled && interations < maxInterations)
+        while (!isFilled)
         {
             List<GamePiece> matches = EncontrarParejas();
             if (matches.Count == 0)
@@ -162,6 +162,15 @@ public class GameManager : MonoBehaviour
             {
                 matches = matches.Intersect(addedPieces).ToList();
                 Remplazar(matches);
+            }
+            if (interations>maxInterations)
+            {
+                isFilled = true;
+                List<GamePiece> parejassueltas = EncontrarParejas();
+                if (parejassueltas.Count >= 0)
+                {
+                    ClearandFilltheBoard(parejassueltas,0);
+                }
             }
             interations++;
         }
@@ -259,7 +268,7 @@ public class GameManager : MonoBehaviour
             else
             {
                 yield return new WaitForSeconds(swapTime);
-                ClearandFilltheBoard(selectedPieceMatches.Union(targetPieceMatches).ToList());
+                ClearandFilltheBoard(selectedPieceMatches.Union(targetPieceMatches).ToList(),10);
             }
         }
     }
@@ -488,19 +497,19 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-    void ClearandFilltheBoard(List<GamePiece> gamePieces)
+    void ClearandFilltheBoard(List<GamePiece> gamePieces,int point)
     {
-        StartCoroutine(ClearandFill(gamePieces));
+        StartCoroutine(ClearandFill(gamePieces,point));
     }
-    IEnumerator ClearandFill(List<GamePiece> gamePieces)
+    IEnumerator ClearandFill(List<GamePiece> gamePieces,int point)
     {
         enEjecucion = true;
-        yield return StartCoroutine(ClearandCollpse(gamePieces));
+        yield return StartCoroutine(ClearandCollpse(gamePieces,point));
         yield return null;
         yield return StartCoroutine(RefillRoutine());
         enEjecucion = false;
     }
-    IEnumerator ClearandCollpse(List<GamePiece> gamePieces)
+    IEnumerator ClearandCollpse(List<GamePiece> gamePieces, int points)
     {
         enEjecucion = true;
         List<GamePiece> movingPieces = new List<GamePiece>();
@@ -515,7 +524,7 @@ public class GameManager : MonoBehaviour
             }
             foreach (GamePiece piece in gamePieces)
             {
-                Points(10);
+                Points(points);
                 Eliminar(piece.indiceX, piece.indiceY);
             }
             //Eliminar(gamePieces);
@@ -534,7 +543,7 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                yield return StartCoroutine(ClearandCollpse(matches));
+                yield return StartCoroutine(ClearandCollpse(matches,10));
             }
         }
         enEjecucion = false;
@@ -610,6 +619,7 @@ public class GameManager : MonoBehaviour
     }
     void Points(int pnt)
     {
+
         puntuacion += pnt;
         string puntaje;
         puntaje = puntuacion.ToString("000");
