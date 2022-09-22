@@ -24,8 +24,9 @@ public class GameManager : MonoBehaviour
     public float swapTime;
     [Range(0f, 5f)]
     public float collapseTime;
-    int puntuacion;
+    float puntuacion;
     public static bool estaPausado = false;
+    float multi = 1;
 
     [Header("Reloj")]
     [Tooltip("Tiempo iniciar en Segundos")]
@@ -142,8 +143,12 @@ public class GameManager : MonoBehaviour
             {
                 if (myPiece[i, j] == null)
                 {
+
+
                     GamePiece gamePiece = FillPieces(i, j);
                     addedPieces.Add(gamePiece);
+
+
                 }
             }
         }
@@ -163,13 +168,13 @@ public class GameManager : MonoBehaviour
                 matches = matches.Intersect(addedPieces).ToList();
                 Remplazar(matches);
             }
-            if (interations>maxInterations)
+            if (interations > maxInterations)
             {
                 isFilled = true;
                 List<GamePiece> parejassueltas = EncontrarParejas();
                 if (parejassueltas.Count >= 0)
                 {
-                    ClearandFilltheBoard(parejassueltas,0);
+                    ClearandFilltheBoard(parejassueltas, 0);
                 }
             }
             interations++;
@@ -268,7 +273,7 @@ public class GameManager : MonoBehaviour
             else
             {
                 yield return new WaitForSeconds(swapTime);
-                ClearandFilltheBoard(selectedPieceMatches.Union(targetPieceMatches).ToList(),10);
+                ClearandFilltheBoard(selectedPieceMatches.Union(targetPieceMatches).ToList(), 10);
             }
         }
     }
@@ -383,9 +388,6 @@ public class GameManager : MonoBehaviour
     {
         List<GamePiece> hList = FindHorizontal(indexX, indexY, minLength);
         List<GamePiece> vList = FindVertical(indexX, indexY, minLength);
-
-
-
         if (hList == null)
         {
             hList = new List<GamePiece>();
@@ -395,7 +397,6 @@ public class GameManager : MonoBehaviour
         {
             vList = new List<GamePiece>();
         }
-
         var AllList = hList.Union(vList).ToList();
         return AllList;
     }
@@ -497,34 +498,43 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-    void ClearandFilltheBoard(List<GamePiece> gamePieces,int point)
+    void ClearandFilltheBoard(List<GamePiece> gamePieces, int point)
     {
-        StartCoroutine(ClearandFill(gamePieces,point));
+        StartCoroutine(ClearandFill(gamePieces, point));
     }
-    IEnumerator ClearandFill(List<GamePiece> gamePieces,int point)
+    IEnumerator ClearandFill(List<GamePiece> gamePieces, int point, float multiplicador = 1)
     {
         enEjecucion = true;
-        yield return StartCoroutine(ClearandCollpse(gamePieces,point));
-        yield return null;
-        yield return StartCoroutine(RefillRoutine());
+        List<GamePiece> matches = gamePieces;
+        do
+        {
+            yield return StartCoroutine(ClearandCollpse(matches, point));
+            multi = 1;
+            yield return null;
+            yield return StartCoroutine(RefillRoutine());
+            matches = EncontrarParejas();
+            yield return new WaitForSeconds(.5f);
+
+        } while (matches.Count != 0);
         enEjecucion = false;
     }
-    IEnumerator ClearandCollpse(List<GamePiece> gamePieces, int points)
+    IEnumerator ClearandCollpse(List<GamePiece> gamePieces, int points, float multiplicador = 1)
     {
         enEjecucion = true;
         List<GamePiece> movingPieces = new List<GamePiece>();
         List<GamePiece> matches = new List<GamePiece>();
         yield return new WaitForSeconds(0.25f);
         bool isFinished = false;
+
         while (!isFinished)
         {
-            while(estaPausado)
+            while (estaPausado)
             {
                 yield return null;
             }
             foreach (GamePiece piece in gamePieces)
             {
-                Points(points);
+                Points(points, multiplicador);
                 Eliminar(piece.indiceX, piece.indiceY);
             }
             //Eliminar(gamePieces);
@@ -543,7 +553,9 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                yield return StartCoroutine(ClearandCollpse(matches,10));
+                multi += 1;
+                Debug.Log("multiplicador" + multi);
+                yield return StartCoroutine(ClearandCollpse(matches, 10, multi));
             }
         }
         enEjecucion = false;
@@ -580,7 +592,7 @@ public class GameManager : MonoBehaviour
         yield return new WaitForEndOfFrame();
         tEnSegundos = 0f;
         puntuacion = 0;
-        puntajeEnPantalla.text = "000";
+        puntajeEnPantalla.text = "0000";
         PositionOnMatriz();
         estaPausado = false;
         pause.sprite = estaPausado ? pauseOn : PauseOff;
@@ -617,12 +629,11 @@ public class GameManager : MonoBehaviour
         }
         pause.sprite = estaPausado ? pauseOn : PauseOff;
     }
-    void Points(int pnt)
+    void Points(int pnt, float multiplicador = 1)
     {
-
-        puntuacion += pnt;
+        puntuacion += (float)pnt * multiplicador;
         string puntaje;
-        puntaje = puntuacion.ToString("000");
+        puntaje = puntuacion.ToString("0000");
         puntajeEnPantalla.text = puntaje;
     }
 }
