@@ -48,7 +48,7 @@ public class GameManager : MonoBehaviour
     public GameObject menuPausa;
     public GameObject banana;
 
-
+    // UNITY--------------------------------------------------------------
     private void Awake()
     {
         if (Instance == null)
@@ -62,7 +62,7 @@ public class GameManager : MonoBehaviour
         myBoard = new Tile[width, height];
         NewMap();
         CameraPosition();
-        PositionOnMatriz();
+        FillPicesAt();
         enEjecucion = false;
         puntuacion = 0;
         estaPausado = false;
@@ -95,7 +95,8 @@ public class GameManager : MonoBehaviour
             StartCoroutine(Restart());
         }
     }
-    void ActualizarReloj(float tiempo)
+    //INTERFAZ--------------------------------------------------------------
+    void ActualizarReloj(float tiempo)  //Metodo encargado del funcionamiento del reloj del juego
     {
         int minutos = 0;
         int segundos = 0;
@@ -108,7 +109,7 @@ public class GameManager : MonoBehaviour
         textoDelReloj = minutos.ToString("00") + ":" + segundos.ToString("00");//+ ":" + milisegundos.ToString("00");
         reloj.text = textoDelReloj;
     }
-    void CameraPosition()
+    void CameraPosition()  //Metodo encargado en posicionar la camara de juego
     {
         mainCamenra.transform.position = new Vector3(((float)width / 2) - 0.5f, ((float)height / 2) - 0.5f, mainCamenra.transform.position.z);
         if (width < height)
@@ -120,7 +121,57 @@ public class GameManager : MonoBehaviour
             mainCamenra.GetComponent<Camera>().orthographicSize = ((((float)Screen.height * (float)width) / (float)Screen.width) / 2) + ((float)edge * 2);
         }
     }
-    public void NewMap()
+    IEnumerator Restart()  //Rutina que se encarga de reiniciar el tablero de juego
+    {
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                Remove(i, j);
+            }
+        }
+        yield return new WaitForEndOfFrame();
+        tEnSegundos = 0f;
+        puntuacion = 0;
+        puntajeEnPantalla.text = "0000";
+        FillPicesAt();
+        estaPausado = false;
+        pause.sprite = estaPausado ? pauseOn : PauseOff;
+        yield return new WaitForEndOfFrame();
+    }
+    public void RestartButton()  //Metodo que se encarga de reiniciar el tablero de juego
+    {
+        StartCoroutine(Restart());
+    }
+    public void SoundButton()  //Metodo encargado de configurar el sonido del juego
+    {
+        OptionManager.music = !OptionManager.music;
+        sound.sprite = OptionManager.music ? soundOff : soundOn;
+        GetComponent<AudioSource>().mute = OptionManager.music;
+    }
+    public void ExitButton()  //Metodo encargado del boton de salida
+    {
+        SceneManager.LoadScene(0);
+    }
+    public void PauseButton()  //Metodo encargado de el boton de pausa
+    {
+        estaPausado = !estaPausado;
+        if (estaPausado)
+        {
+            enEjecucion = true;
+            menuPausa.SetActive(true);
+            banana.SetActive(true);
+        }
+        else
+        {
+            enEjecucion = false;
+            menuPausa.SetActive(false);
+            banana.SetActive(false);
+        }
+        pause.sprite = estaPausado ? pauseOn : PauseOff;
+    }
+    //JUEGO --------------------------------------------------------------
+    public void NewMap()  // Crea la tabla de juego
     {
 
         for (int i = 0; i < width; i++)
@@ -134,7 +185,7 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-    public void PositionOnMatriz()
+    public void FillPicesAt()  //Instancia y llenas las piezas de juego
     {
         List<GamePiece> addedPieces = new List<GamePiece>();
         for (int i = 0; i < width; i++)
@@ -157,7 +208,7 @@ public class GameManager : MonoBehaviour
         int interations = 0;
         while (!isFilled)
         {
-            List<GamePiece> matches = EncontrarParejas();
+            List<GamePiece> matches = FindMatchesAt();
             if (matches.Count == 0)
             {
                 isFilled = true;
@@ -166,21 +217,21 @@ public class GameManager : MonoBehaviour
             else
             {
                 matches = matches.Intersect(addedPieces).ToList();
-                Remplazar(matches);
+                ReplacePiece(matches);
             }
             if (interations > maxInterations)
             {
                 isFilled = true;
-                List<GamePiece> parejassueltas = EncontrarParejas();
+                List<GamePiece> parejassueltas = FindMatchesAt();
                 if (parejassueltas.Count >= 0)
                 {
-                    ClearandFilltheBoard(parejassueltas, 0);
+                    ReplacePiece(parejassueltas);
                 }
             }
             interations++;
         }
     }
-    public void InitializePosition(int X, int Y, GamePiece piece)
+    public void InitializePosition(int X, int Y, GamePiece piece)  //Configura la posicion de las piezas en la matriz de la tabla del juego
     {
         piece.transform.position = new Vector3(X, Y, 0);
         piece.SetPosition(X, Y);
@@ -189,43 +240,47 @@ public class GameManager : MonoBehaviour
             myPiece[X, Y] = piece;
         }
     }
-    public GameObject RandomGamePiece()
+    public GameObject RandomGamePiece()  //Crea una ficha aleatoria
     {
         int numeroR = Random.Range(0, gamePiece.Length);
         GameObject buffer = gamePiece[numeroR];
         buffer.GetComponent<GamePiece>().SetPrefab(numeroR);
         return buffer;
     }
-    void Remplazar(List<GamePiece> lista)
+    void ReplacePiece(List<GamePiece> lista)  //Reemplaza las fichas vacias
     {
-        Eliminar(lista);
+        foreach (GamePiece piece1 in lista)
+        {
+            Points(0);
+            Remove(piece1.indiceX, piece1.indiceY);
+        }
         foreach (GamePiece piece in lista)
         {
             FillPieces(piece.indiceX, piece.indiceY);
         }
     }
-    private GamePiece FillPieces(int x, int y)
+    private GamePiece FillPieces(int x, int y) //Instancia o crea las piezas de juego en la tabla
     {
         GameObject go = Instantiate(RandomGamePiece(), new Vector3(x, y, 0), Quaternion.identity, transform);
         InitializePosition(x, y, go.GetComponent<GamePiece>());
         go.name = "Circle (" + x + "," + y + ")";
         return go.GetComponent<GamePiece>();
     }
-    public void SelectTile(Tile tile)
+    public void SelectTile(Tile tile)  //Selecciona la ficha de juego con la cual se interactua
     {
         if (selectTile == null && !enEjecucion)
         {
             selectTile = tile;
         }
     }
-    public void TargetTile(Tile tile)
+    public void TargetTile(Tile tile)  //Selecciona la ficha de juego con la cual se realiza las interacciones
     {
         if (selectTile != null)
         {
             targetTile = tile;
         }
     }
-    public void Released()
+    public void Released()  //Suelta las fichas seleccionadas para poder seguir avanzando en el juego
     {
         if (selectTile != null && targetTile != null && IsNeighbour(selectTile, targetTile))
         {
@@ -238,7 +293,7 @@ public class GameManager : MonoBehaviour
         }
 
     }
-    bool IsNeighbour(Tile selected, Tile target)
+    bool IsNeighbour(Tile selected, Tile target)  //Define si las fichas a interactuar son vecinos
     {
         if (Mathf.Abs(selected.transform.position.x - target.transform.position.x) == 1 && selected.transform.position.y == target.transform.position.y)
         {
@@ -250,11 +305,11 @@ public class GameManager : MonoBehaviour
         }
         return false;
     }
-    public void SwitchPieces(Tile selected, Tile target)
+    public void SwitchPieces(Tile selected, Tile target)  //Metodo para hacer cambio de fichas
     {
         StartCoroutine(SwitchTilesRoutine(selected, target));
     }
-    IEnumerator SwitchTilesRoutine(Tile selected, Tile target)
+    IEnumerator SwitchTilesRoutine(Tile selected, Tile target)  //Rutina para hacer cambio de fichas
     {
         GamePiece iniGp = myPiece[selected.indiceX, selected.indiceY];
         GamePiece finGp = myPiece[target.indiceX, target.indiceY];
@@ -273,15 +328,22 @@ public class GameManager : MonoBehaviour
             else
             {
                 yield return new WaitForSeconds(swapTime);
-                ClearandFilltheBoard(selectedPieceMatches.Union(targetPieceMatches).ToList(), 10);
+                if (IsFigure(selected.indiceX, selected.indiceY) || IsFigure(target.indiceX, target.indiceY))
+                {
+                    ClearandFilltheBoard(selectedPieceMatches.Union(targetPieceMatches).ToList(), 10, 5);
+                }
+                else
+                {
+                    ClearandFilltheBoard(selectedPieceMatches.Union(targetPieceMatches).ToList(), 10);
+                }
             }
         }
     }
-    bool IsWithInBounds(int x, int y)
+    bool IsWithInBounds(int x, int y)  //Metodo que define el limite de la tabla de juego
     {
         return (x >= 0 && x < width && y >= 0 && y < height);
     }
-    List<GamePiece> FindMatches(int startX, int startY, Vector3 SerchDirection, int minLength = 3)
+    List<GamePiece> FindMatches(int startX, int startY, Vector3 SerchDirection, int minLength = 3)  //Lista que busca fichas que hacen pareja
     {
         List<GamePiece> match = new List<GamePiece>();
         GamePiece startPiece = null;
@@ -331,9 +393,8 @@ public class GameManager : MonoBehaviour
         }
         return null;
     }
-    List<GamePiece> Check(List<GamePiece> gamePieces, int minLength = 3)//FindMatchAt
+    List<GamePiece> Check(List<GamePiece> gamePieces, int minLength = 3)  //Lista que busca coincidencias de fichas
     {
-
         List<GamePiece> matches = new List<GamePiece>();
         foreach (GamePiece piece in gamePieces)
         {
@@ -341,7 +402,51 @@ public class GameManager : MonoBehaviour
         }
         return matches;
     }
-    List<GamePiece> EncontrarParejas()
+    List<GamePiece> Check(int indexX, int indexY, int minLength = 3)  //Lista que une las coincidencias de posiciones verticales y horizontales
+    {
+        List<GamePiece> hList = FindHorizontal(indexX, indexY, minLength);
+        List<GamePiece> vList = FindVertical(indexX, indexY, minLength);
+        if (hList == null)
+        {
+            hList = new List<GamePiece>();
+        }
+        if (vList == null)
+        {
+            vList = new List<GamePiece>();
+        }
+        var AllList = hList.Union(vList).ToList();
+        return AllList;
+    }
+    bool IsFigure(int indexX, int indexY, int minLength = 3)  //Metodo que define cuando se esta haciendo una figura en las coincidencias
+    {
+        List<GamePiece> hList = FindHorizontal(indexX, indexY, minLength);
+        List<GamePiece> vList = FindVertical(indexX, indexY, minLength);
+        if (hList == null)
+        {
+            hList = new List<GamePiece>();
+        }
+        if (vList == null)
+        {
+            vList = new List<GamePiece>();
+        }
+        if (hList.Count == 0 && vList.Count != 0)
+        {
+            return false;
+        }
+        if (hList.Count != 0 && vList.Count == 0)
+        {
+            return false;
+        }
+        if (hList.Count != 0 && vList.Count != 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    List<GamePiece> FindMatchesAt()  //Lista que busca coincidencias en toda la tabla
     {
         List<GamePiece> combinedmatches = new List<GamePiece>();
         for (int i = 0; i < width; i++)
@@ -354,7 +459,7 @@ public class GameManager : MonoBehaviour
         }
         return combinedmatches;
     }
-    public List<GamePiece> FindVertical(int starX, int starY, int minLegth = 3)
+    public List<GamePiece> FindVertical(int starX, int starY, int minLegth = 3)  //Encuentra coincidencias en posicion vertical
     {
         List<GamePiece> upList = FindMatches(starX, starY, new Vector3(0, 1f, 0), 2);
         List<GamePiece> downList = FindMatches(starX, starY, new Vector3(0, -1f, 0), 2);
@@ -369,7 +474,7 @@ public class GameManager : MonoBehaviour
         var combinedMatches = upList.Union(downList).ToList();
         return (combinedMatches.Count >= minLegth) ? combinedMatches : null;
     }
-    public List<GamePiece> FindHorizontal(int starX, int starY, int minLegth = 3)
+    public List<GamePiece> FindHorizontal(int starX, int starY, int minLegth = 3)  //Encuentra coincidencias en posicion horizontal
     {
         List<GamePiece> leftList = FindMatches(starX, starY, new Vector3(-1f, 0f, 0), 2);
         List<GamePiece> rigthList = FindMatches(starX, starY, new Vector3(1f, 0f, 0), 2);
@@ -384,23 +489,7 @@ public class GameManager : MonoBehaviour
         var combinedMatches = leftList.Union(rigthList).ToList();
         return (combinedMatches.Count >= minLegth) ? combinedMatches : null;
     }
-    List<GamePiece> Check(int indexX, int indexY, int minLength = 3)
-    {
-        List<GamePiece> hList = FindHorizontal(indexX, indexY, minLength);
-        List<GamePiece> vList = FindVertical(indexX, indexY, minLength);
-        if (hList == null)
-        {
-            hList = new List<GamePiece>();
-        }
-
-        if (vList == null)
-        {
-            vList = new List<GamePiece>();
-        }
-        var AllList = hList.Union(vList).ToList();
-        return AllList;
-    }
-    List<GamePiece> MovementPieces(int columna)
+    List<GamePiece> MovementPieces(int columna)  //Lista que reconoce las fichas que estan en movimiento en la tabla de juego
     {
         List<GamePiece> movingPieces = new List<GamePiece>();
         for (int i = 0; i < height - 1; i++)
@@ -426,7 +515,7 @@ public class GameManager : MonoBehaviour
         }
         return movingPieces;
     }
-    List<GamePiece> CollapseColumn(List<GamePiece> gamePieces)
+    List<GamePiece> CollapseColumn(List<GamePiece> gamePieces)  //Lista que reconoce cuales son las columnas en las cuales se estan eliminando fichas
     {
         List<GamePiece> movingPieces = new List<GamePiece>();
         List<int> columnsToCollapse = GetColumns(gamePieces);
@@ -436,7 +525,7 @@ public class GameManager : MonoBehaviour
         }
         return movingPieces;
     }
-    List<int> GetColumns(List<GamePiece> gamePieces)
+    List<int> GetColumns(List<GamePiece> gamePieces) //Lista que crea un indice de las columnas en las cuales se estan eliminando fichas
     {
         List<int> indiceColumnas = new List<int>();
         foreach (GamePiece piece in gamePieces)
@@ -448,37 +537,7 @@ public class GameManager : MonoBehaviour
         }
         return indiceColumnas;
     }
-    void ApagarLuces(int x, int y)
-    {
-        SpriteRenderer sr = myBoard[x, y].GetComponent<SpriteRenderer>();
-        sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, 0f);
-    }
-    void PrenderLuces(int x, int y, Color color)
-    {
-        SpriteRenderer sr = myBoard[x, y].GetComponent<SpriteRenderer>();
-        sr.color = color;
-    }
-    public void PrenderResultados()
-    {
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
-                Check(i, j);
-            }
-        }
-    }
-    public void Prender(int x, int y)
-    {
-        ApagarLuces(x, y);
-        var combinedmatches = Check(x, y);
-        if (combinedmatches.Count > 0)
-            foreach (GamePiece piece in combinedmatches)
-            {
-                PrenderLuces(piece.indiceX, piece.indiceY, myPiece[x, y].GetComponent<SpriteRenderer>().color);
-            }
-    }
-    void Eliminar(int x, int y)
+    void Remove(int x, int y)  //Elimina las fichas en unas coordenadas indicadas
     {
         GamePiece eliminarpiece = myPiece[x, y];
         if (eliminarpiece != null)
@@ -486,39 +545,38 @@ public class GameManager : MonoBehaviour
             myPiece[x, y] = null;
             Destroy(eliminarpiece.gameObject);
         }
-        ApagarLuces(x, y);
     }
-    void Eliminar(List<GamePiece> gamePiece)
+    void Remove(List<GamePiece> gamePiece)  //Eliminas las fichas en una lista dada
     {
         foreach (GamePiece piece in gamePiece)
         {
             if (piece != null)
             {
-                Eliminar(piece.indiceX, piece.indiceY);
+                Remove(piece.indiceX, piece.indiceY);
             }
         }
     }
-    void ClearandFilltheBoard(List<GamePiece> gamePieces, int point)
+    void ClearandFilltheBoard(List<GamePiece> gamePieces, int point, float multiplicador = 1)  //Metodo que se usa para eliminar fichas y rellenarlas (Mecanica Principal del juego)
     {
-        StartCoroutine(ClearandFill(gamePieces, point));
+        StartCoroutine(ClearandFill(gamePieces, point, multiplicador));
     }
-    IEnumerator ClearandFill(List<GamePiece> gamePieces, int point, float multiplicador = 1)
+    IEnumerator ClearandFill(List<GamePiece> gamePieces, int point, float multiplicador = 1)  //Rutina que se encarga de inicial las corutinas que conforman las mecanicas del juego
     {
         enEjecucion = true;
         List<GamePiece> matches = gamePieces;
         do
         {
-            yield return StartCoroutine(ClearandCollpse(matches, point));
+            yield return StartCoroutine(ClearandCollpse(matches, point, multiplicador));
             multi = 1;
             yield return null;
             yield return StartCoroutine(RefillRoutine());
-            matches = EncontrarParejas();
+            matches = FindMatchesAt();
             yield return new WaitForSeconds(.5f);
 
         } while (matches.Count != 0);
         enEjecucion = false;
     }
-    IEnumerator ClearandCollpse(List<GamePiece> gamePieces, int points, float multiplicador = 1)
+    IEnumerator ClearandCollpse(List<GamePiece> gamePieces, int points, float multiplicador = 1)  //Rutina que se encarga de eliminar las piezas que hacen coincidencias y revisar que al colapsar no se creen mas coincidencias para continuar
     {
         enEjecucion = true;
         List<GamePiece> movingPieces = new List<GamePiece>();
@@ -535,12 +593,11 @@ public class GameManager : MonoBehaviour
             foreach (GamePiece piece in gamePieces)
             {
                 Points(points, multiplicador);
-                Eliminar(piece.indiceX, piece.indiceY);
+                Remove(piece.indiceX, piece.indiceY);
             }
-            //Eliminar(gamePieces);
             yield return new WaitForSeconds(0.25f);
             movingPieces = CollapseColumn(gamePieces);
-            while (!EstaColapsado(gamePieces))
+            while (!IsCollapsed(gamePieces))
             {
                 yield return new WaitForEndOfFrame();
             }
@@ -556,17 +613,18 @@ public class GameManager : MonoBehaviour
                 multi += 1;
                 Debug.Log("multiplicador" + multi);
                 yield return StartCoroutine(ClearandCollpse(matches, 10, multi));
+                yield return new WaitForSeconds(0.5f);
             }
         }
         enEjecucion = false;
         yield return null;
     }
-    IEnumerator RefillRoutine()
+    IEnumerator RefillRoutine() //Rutina que se encarga de llenar las fichas eliminadas
     {
-        PositionOnMatriz();
+        FillPicesAt();
         yield return null;
     }
-    bool EstaColapsado(List<GamePiece> gamePieces)
+    bool IsCollapsed(List<GamePiece> gamePieces)  //Metodo que me identifica que en las columnas estan colapsadas
     {
         foreach (GamePiece piece in gamePieces)
         {
@@ -580,56 +638,7 @@ public class GameManager : MonoBehaviour
         }
         return true;
     }
-    IEnumerator Restart()
-    {
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
-                Eliminar(i, j);
-            }
-        }
-        yield return new WaitForEndOfFrame();
-        tEnSegundos = 0f;
-        puntuacion = 0;
-        puntajeEnPantalla.text = "0000";
-        PositionOnMatriz();
-        estaPausado = false;
-        pause.sprite = estaPausado ? pauseOn : PauseOff;
-        yield return new WaitForEndOfFrame();
-    }
-    public void RestartButton()
-    {
-        StartCoroutine(Restart());
-    }
-    public void SoundButton()
-    {
-        OptionManager.music = !OptionManager.music;
-        sound.sprite = OptionManager.music ? soundOff : soundOn;
-        GetComponent<AudioSource>().mute = OptionManager.music;
-    }
-    public void ExitButton()
-    {
-        SceneManager.LoadScene(0);
-    }
-    public void PauseButton()
-    {
-        estaPausado = !estaPausado;
-        if (estaPausado)
-        {
-            enEjecucion = true;
-            menuPausa.SetActive(true);
-            banana.SetActive(true);
-        }
-        else
-        {
-            enEjecucion = false;
-            menuPausa.SetActive(false);
-            banana.SetActive(false);
-        }
-        pause.sprite = estaPausado ? pauseOn : PauseOff;
-    }
-    void Points(int pnt, float multiplicador = 1)
+    void Points(int pnt, float multiplicador = 1)  //Metodo que suma y lleva el puntaje en pantalla
     {
         puntuacion += (float)pnt * multiplicador;
         string puntaje;
