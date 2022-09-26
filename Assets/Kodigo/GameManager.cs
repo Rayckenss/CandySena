@@ -27,6 +27,9 @@ public class GameManager : MonoBehaviour
     float puntuacion;
     public static bool estaPausado = false;
     float multi = 1;
+    public Levels nivel;
+    int goal;
+    float timeGoal;
 
     [Header("Reloj")]
     [Tooltip("Tiempo iniciar en Segundos")]
@@ -47,6 +50,9 @@ public class GameManager : MonoBehaviour
     public TMP_Text puntajeEnPantalla;
     public GameObject menuPausa;
     public GameObject banana;
+    public ParticleSystem flowers;
+    public GameObject aviso;
+
 
     // UNITY--------------------------------------------------------------
     private void Awake()
@@ -78,6 +84,40 @@ public class GameManager : MonoBehaviour
         sound.sprite = OptionManager.music ? soundOff : soundOn;
         GetComponent<AudioSource>().mute = OptionManager.music;
 
+        //configurar niveles
+        switch (nivel)
+        {
+            case Levels.Level1:
+                goal = 1000;
+                timeGoal = 120f;
+                tInicial = 120;
+                break;
+            case Levels.Level2:
+                goal = 1500;
+                timeGoal = 240;
+                tInicial = 240;
+                break;
+            case Levels.Level3:
+                goal = 2000;
+                timeGoal = 360f;
+                tInicial = 360;
+                break;
+            case Levels.Level4:
+                goal = 2500;
+                timeGoal = 420f;
+                tInicial = 420;
+                break;
+            case Levels.Level5:
+                goal = 3000;
+                timeGoal = 540f;
+                tInicial = 540;
+                break;
+            case Levels.infinito:
+
+                break;
+            default:
+                break;
+        }
     }
     void Update()
     {
@@ -131,11 +171,40 @@ public class GameManager : MonoBehaviour
             }
         }
         yield return new WaitForEndOfFrame();
-        tEnSegundos = 0f;
+        switch (nivel)
+        {
+            case Levels.Level1:
+                tEnSegundos = 120f;
+                escalaDeTiempo = -1;
+                break;
+            case Levels.Level2:
+                tEnSegundos = 120f;
+                escalaDeTiempo = -1;
+                break;
+            case Levels.Level3:
+                tEnSegundos = 120f;
+                escalaDeTiempo = -1;
+                break;
+            case Levels.Level4:
+                tEnSegundos = 120f;
+                escalaDeTiempo = -1;
+                break;
+            case Levels.Level5:
+                tEnSegundos = 120f;
+                escalaDeTiempo = -1;
+                break;
+            case Levels.infinito:
+                tEnSegundos = 0;
+                escalaDeTiempo = 1;
+                break;
+            default:
+                break;
+        }
         puntuacion = 0;
-        puntajeEnPantalla.text = "0000";
+        puntajeEnPantalla.text = "0000/0000";
         FillPicesAt();
-        estaPausado = false;
+        estaPausado = true;
+        PauseButton();
         pause.sprite = estaPausado ? pauseOn : PauseOff;
         yield return new WaitForEndOfFrame();
     }
@@ -170,6 +239,7 @@ public class GameManager : MonoBehaviour
         }
         pause.sprite = estaPausado ? pauseOn : PauseOff;
     }
+
     //JUEGO --------------------------------------------------------------
     public void NewMap()  // Crea la tabla de juego
     {
@@ -194,12 +264,13 @@ public class GameManager : MonoBehaviour
             {
                 if (myPiece[i, j] == null)
                 {
-
-
                     GamePiece gamePiece = FillPieces(i, j);
                     addedPieces.Add(gamePiece);
-
-
+                    foreach (GamePiece piece in addedPieces)
+                    {
+                        GameObject Ps = Instantiate(flowers, new Vector3(piece.indiceX, piece.indiceY, 0), Quaternion.identity).gameObject;
+                        Destroy(Ps, 1.2f);
+                    }
                 }
             }
         }
@@ -576,7 +647,7 @@ public class GameManager : MonoBehaviour
         } while (matches.Count != 0);
         enEjecucion = false;
     }
-    IEnumerator ClearandCollpse(List<GamePiece> gamePieces, int points, float multiplicador = 1)  //Rutina que se encarga de eliminar las piezas que hacen coincidencias y revisar que al colapsar no se creen mas coincidencias para continuar
+    IEnumerator ClearandCollpse(List<GamePiece> gamePieces, int points, float multiplicador = 1)  //Se encarga de eliminar las piezas que hacen coincidencias y revisar que al colapsar no se creen mas coincidencias para continuar
     {
         enEjecucion = true;
         List<GamePiece> movingPieces = new List<GamePiece>();
@@ -643,6 +714,63 @@ public class GameManager : MonoBehaviour
         puntuacion += (float)pnt * multiplicador;
         string puntaje;
         puntaje = puntuacion.ToString("0000");
-        puntajeEnPantalla.text = puntaje;
+        puntajeEnPantalla.text = puntaje + "/" + goal.ToString();
+    }
+    void GameFinish(int puntos, float tiempo)
+    {
+        if (puntos >= goal && tiempo < timeGoal)
+        {
+
+        }
+    }
+    private void OnEnable()
+    {
+        switch (nivel)
+        {
+            case Levels.Level1:
+                goal = 1000;
+                timeGoal = 120f;
+                tInicial = 120;
+                break;
+            case Levels.Level2:
+                goal = 1500;
+                timeGoal = 240;
+                tInicial = 240;
+                break;
+            case Levels.Level3:
+                goal = 2000;
+                timeGoal = 360f;
+                tInicial = 360;
+                break;
+            case Levels.Level4:
+                goal = 2500;
+                timeGoal = 420f;
+                tInicial = 420;
+                break;
+            case Levels.Level5:
+                goal = 3000;
+                timeGoal = 540f;
+                tInicial = 540;
+                break;
+            case Levels.infinito:
+
+                break;
+            default:
+                break;
+        }
+    }
+    void SetBasicUI(bool bl, string text)
+    {
+        aviso.GetComponentInChildren<TMP_Text>().text = text;
+        aviso.SetActive(bl);
+    }
+    public enum Levels
+    {
+        Level1,
+        Level2,
+        Level3,
+        Level4,
+        Level5,
+        infinito
     }
 }

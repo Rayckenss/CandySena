@@ -162,11 +162,6 @@ MonoBehaviour:
   - {fileID: 1245576350270058206, guid: c2b3b1f76aa74954698b4b1517761cb1, type: 3}
   - {fileID: 2067365222627151985, guid: 93ab74bddde914b4ba98dd58dd87963a, type: 3}
   - {fileID: 1768455598300142775, guid: 3b89a61500337594baf7bf1ca385f3de, type: 3}
-  - {fileID: 6507355473492996241, guid: 4ae0422cc8ba23340bb3fd8fb5f862ef, type: 3}
-  - {fileID: 787485604105474760, guid: 17ccd04884d641a46a686cf207e1734d, type: 3}
-  - {fileID: 1937574339258585900, guid: 54775a7b68068f546a72b7c436ae2ed4, type: 3}
-  - {fileID: 2943345532628923835, guid: e9820190d250cd3449aee399235b8fc4, type: 3}
-  - {fileID: 8669318707605649847, guid: bc00f70b23ece27479b101da826d8f06, type: 3}
   mainCamenra: {fileID: 1215747798}
   selectTile: {fileID: 0}
   targetTile: {fileID: 0}
@@ -486,7 +481,7 @@ GameObject:
   - component: {fileID: 448921528}
   - component: {fileID: 448921527}
   m_Layer: 5
-  m_Name: Pausa Canvas
+  m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1214,7 +1209,7 @@ GameObject:
   - component: {fileID: 1393200078}
   - component: {fileID: 1393200077}
   m_Layer: 5
-  m_Name: Botones Canvas
+  m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
