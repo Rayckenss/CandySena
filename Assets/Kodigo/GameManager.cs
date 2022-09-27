@@ -136,7 +136,7 @@ public class GameManager : MonoBehaviour
         {
             StartCoroutine(Restart());
         }
-        GameFinish((int)puntuacion,tEnSegundos);
+        GameFinish((int)puntuacion, tEnSegundos);
     }
     //INTERFAZ--------------------------------------------------------------
     void ActualizarReloj(float tiempo)  //Metodo encargado del funcionamiento del reloj del juego
@@ -490,6 +490,56 @@ public class GameManager : MonoBehaviour
         }
         var AllList = hList.Union(vList).ToList();
         return AllList;
+    }
+    int FigureTyupe(List<GamePiece> gamePieces)
+    {
+        foreach (GamePiece piece in gamePieces)
+        {
+            List<GamePiece> upList = FindMatches(piece.indiceX, piece.indiceY, new Vector3(0, 1f, 0), 2);
+            List<GamePiece> downList = FindMatches(piece.indiceX, piece.indiceY, new Vector3(0, -1f, 0), 2);
+            List<GamePiece> leftList = FindMatches(piece.indiceX, piece.indiceY, new Vector3(-1f, 0f, 0), 2);
+            List<GamePiece> rigthList = FindMatches(piece.indiceX, piece.indiceY, new Vector3(1f, 0f, 0), 2);
+            if (upList == null)
+            {
+                upList = new List<GamePiece>();
+            }
+            if (downList == null)
+            {
+                downList = new List<GamePiece>();
+            }
+            if (leftList == null)
+            {
+                leftList = new List<GamePiece>();
+            }
+            if (rigthList == null)
+            {
+                rigthList = new List<GamePiece>();
+            }
+            if (upList.Count > 0 && (leftList.Count > 1 || rigthList.Count > 1))
+            {
+                Debug.Log("Forma L");
+                return 1;
+            }
+            if (downList.Count > 0 && (leftList.Count > 1 || rigthList.Count > 1))
+            {
+                Debug.Log("Forma L Inversa");
+                return 1;
+            }
+            if (upList.Count > 0 && (leftList.Count > 0 || rigthList.Count > 0))
+            {
+                Debug.Log("Forma T inversa");
+                return 2;
+            }
+            if (downList.Count > 0 && (leftList.Count > 0 || rigthList.Count > 0))
+            {
+                Debug.Log("Forma T");
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        return 0;
     }
     bool IsFigure(int indexX, int indexY, int minLength = 3)  //Metodo que define cuando se esta haciendo una figura en las coincidencias
     {
