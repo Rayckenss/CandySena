@@ -20,6 +20,7 @@ public class GameManager : MonoBehaviour
     public GameObject mainCamenra;
     public Tile selectTile, targetTile;
     public bool enEjecucion;
+    bool infinity = false;
     [Range(0f, 5f)]
     public float swapTime;
     [Range(0f, 5f)]
@@ -115,7 +116,7 @@ public class GameManager : MonoBehaviour
                 tInicial = 540;
                 break;
             case Levels.infinito:
-
+                infinity = true;
                 break;
             default:
                 break;
@@ -204,7 +205,14 @@ public class GameManager : MonoBehaviour
                 break;
         }
         puntuacion = 0;
-        puntajeEnPantalla.text = "0000/0000";
+        if (infinity)
+        {
+            puntajeEnPantalla.text = "0000";
+        }
+        else
+        {
+            puntajeEnPantalla.text = "0000/0000";
+        }
         FillPicesAt();
         estaPausado = true;
         PauseButton();
@@ -405,6 +413,23 @@ public class GameManager : MonoBehaviour
                 if (IsFigure(selected.indiceX, selected.indiceY) || IsFigure(target.indiceX, target.indiceY))
                 {
                     ClearandFilltheBoard(selectedPieceMatches.Union(targetPieceMatches).ToList(), 10, 5);
+                    switch (FigureTyupe(selectedPieceMatches.Union(targetPieceMatches).ToList()))
+                    {
+                        case 1:
+                            Debug.Log("Forma T");
+                            break;
+                        case 2:
+                            Debug.Log("Forma L");
+                            break;
+                        case 3:
+                            Debug.Log("Forma T");
+                            break;
+                        case 4:
+                            Debug.Log("Forma L");
+                            break;
+                        default:
+                            break;
+                    }
                 }
                 else
                 {
@@ -515,24 +540,21 @@ public class GameManager : MonoBehaviour
             {
                 rigthList = new List<GamePiece>();
             }
-            if (upList.Count > 0 && (leftList.Count > 1 || rigthList.Count > 1))
+            if ((upList.Count > 0 || downList.Count > 0) && (leftList.Count > 0 && rigthList.Count > 0))
             {
-                Debug.Log("Forma L");
                 return 1;
             }
-            if (downList.Count > 0 && (leftList.Count > 1 || rigthList.Count > 1))
+            if ((upList.Count > 0 || downList.Count > 0) && (leftList.Count > 0 || rigthList.Count > 0))
             {
-                Debug.Log("Forma L Inversa");
-                return 1;
-            }
-            if (upList.Count > 0 && (leftList.Count > 0 || rigthList.Count > 0))
-            {
-                Debug.Log("Forma T inversa");
                 return 2;
             }
-            if (downList.Count > 0 && (leftList.Count > 0 || rigthList.Count > 0))
+            if ((leftList.Count > 0 || rigthList.Count > 0) && (downList.Count > 0 && upList.Count > 0))
             {
-                Debug.Log("Forma T");
+                return 3;
+            }
+            if ((leftList.Count > 0 || rigthList.Count > 0) && (downList.Count > 0 || upList.Count > 0))
+            {
+                return 4;
             }
             else
             {
@@ -767,13 +789,27 @@ public class GameManager : MonoBehaviour
         puntuacion += (float)pnt * multiplicador;
         string puntaje;
         puntaje = puntuacion.ToString("0000");
-        puntajeEnPantalla.text = puntaje + "/" + goal.ToString();
+        if (infinity)
+        {
+            puntajeEnPantalla.text = puntaje;
+        }
+        else
+        {
+            puntajeEnPantalla.text = puntaje + "/" + goal.ToString();
+        }
     }
     void GameFinish(int puntos, float tiempo)
     {
-        if (puntos >= goal && tiempo < timeGoal)
+        if (infinity)
         {
-            win.SetActive(true);
+
+        }
+        else
+        {
+            if (puntos >= goal && tiempo < timeGoal)
+            {
+                win.SetActive(true);
+            }
         }
     }
     private void OnEnable()

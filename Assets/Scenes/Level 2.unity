@@ -135,7 +135,7 @@ GameObject:
   - component: {fileID: 69152968}
   - component: {fileID: 69152970}
   m_Layer: 0
-  m_Name: GameManager
+  m_Name: Level2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -153,8 +153,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7001c04e88b24ec4c8edaf4f995d660c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  height: 9
-  width: 7
+  height: 8
+  width: 6
   edge: 1
   prefab: {fileID: 6254257494482593451, guid: b57509b222072fb42817690a51f50931, type: 3}
   gamePiece:
@@ -162,12 +162,14 @@ MonoBehaviour:
   - {fileID: 1245576350270058206, guid: c2b3b1f76aa74954698b4b1517761cb1, type: 3}
   - {fileID: 2067365222627151985, guid: 93ab74bddde914b4ba98dd58dd87963a, type: 3}
   - {fileID: 1768455598300142775, guid: 3b89a61500337594baf7bf1ca385f3de, type: 3}
+  - {fileID: 8669318707605649847, guid: bc00f70b23ece27479b101da826d8f06, type: 3}
   mainCamenra: {fileID: 1215747798}
   selectTile: {fileID: 0}
   targetTile: {fileID: 0}
   enEjecucion: 0
   swapTime: 0.5
   collapseTime: 0.5
+  nivel: 1
   tInicial: 0
   escalaDeTiempo: 1
   reloj: {fileID: 1893297567}
@@ -181,6 +183,9 @@ MonoBehaviour:
   menuPausa: {fileID: 969609503}
   banana: {fileID: 412177852}
   flowers: {fileID: 3421203085393441284, guid: e48007832d7d76841b2d9207ecc48303, type: 3}
+  aviso: {fileID: 0}
+  lose: {fileID: 0}
+  win: {fileID: 0}
 --- !u!4 &69152969
 Transform:
   m_ObjectHideFlags: 0
@@ -1545,9 +1550,9 @@ RectTransform:
   m_Father: {fileID: 1393200080}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 1}
-  m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -200, y: -150}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 0, y: 150}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1874414235
@@ -1570,7 +1575,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 000
+  m_text: 0000/0000
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 339565bdcd4912446a132f386fe54213, type: 2}
   m_sharedMaterial: {fileID: 3226878026879383818, guid: 339565bdcd4912446a132f386fe54213, type: 2}
@@ -1633,7 +1638,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 83.00785, w: 0}
+  m_margin: {x: 0, y: 0, z: 0.11139679, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -1682,7 +1687,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -150}
+  m_AnchoredPosition: {x: -200, y: -150}
   m_SizeDelta: {x: 200, y: 45}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1893297567
