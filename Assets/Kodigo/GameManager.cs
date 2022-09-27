@@ -52,6 +52,8 @@ public class GameManager : MonoBehaviour
     public GameObject banana;
     public ParticleSystem flowers;
     public GameObject aviso;
+    public GameObject lose;
+    public GameObject win;
 
 
     // UNITY--------------------------------------------------------------
@@ -134,6 +136,7 @@ public class GameManager : MonoBehaviour
         {
             StartCoroutine(Restart());
         }
+        GameFinish((int)puntuacion,tEnSegundos);
     }
     //INTERFAZ--------------------------------------------------------------
     void ActualizarReloj(float tiempo)  //Metodo encargado del funcionamiento del reloj del juego
@@ -720,7 +723,7 @@ public class GameManager : MonoBehaviour
     {
         if (puntos >= goal && tiempo < timeGoal)
         {
-
+            win.SetActive(true);
         }
     }
     private void OnEnable()
